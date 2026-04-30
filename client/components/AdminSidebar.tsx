@@ -138,7 +138,7 @@ export default function AdminSidebar() {
 
   return (
     <aside
-      className={`h-screen border-r border-slate-200 bg-white transition-all duration-300 flex flex-col ${
+      className={`fixed left-0 top-0 bottom-0 border-r border-slate-200 bg-white transition-all duration-300 flex flex-col ${
         collapsed ? "w-16" : "w-64"
       }`}
     >
