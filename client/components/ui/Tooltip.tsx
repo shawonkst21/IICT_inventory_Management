@@ -40,22 +40,24 @@ export function TooltipTrigger({
 		return children
 	}
 
-	return cloneElement(children as React.ReactElement<any>, {
+	const childElement = children as React.ReactElement<any>
+
+	return cloneElement(childElement, {
 		ref: context.triggerRef,
 		onMouseEnter: (event: React.MouseEvent<HTMLElement>) => {
-			children.props.onMouseEnter?.(event)
+			childElement.props.onMouseEnter?.(event)
 			context.setOpen(true)
 		},
 		onMouseLeave: (event: React.MouseEvent<HTMLElement>) => {
-			children.props.onMouseLeave?.(event)
+			childElement.props.onMouseLeave?.(event)
 			context.setOpen(false)
 		},
 		onFocus: (event: React.FocusEvent<HTMLElement>) => {
-			children.props.onFocus?.(event)
+			childElement.props.onFocus?.(event)
 			context.setOpen(true)
 		},
 		onBlur: (event: React.FocusEvent<HTMLElement>) => {
-			children.props.onBlur?.(event)
+			childElement.props.onBlur?.(event)
 			context.setOpen(false)
 		},
 	})

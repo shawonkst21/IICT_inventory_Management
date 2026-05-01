@@ -1,5 +1,13 @@
 const { findItemById } = require('../models/itemModel');
-const { createItemRequest } = require('../models/itemRequestModel');
+const {
+  createItemRequest,
+  findDefaultRequesterId,
+  findDefaultInventoryManagerId,
+  listItemRequests,
+  reviewItemRequest,
+  findItemRequestById,
+  issueApprovedItemRequest,
+} = require('../models/itemRequestModel');
 
 function parsePositiveInt(value) {
   const parsed = Number.parseInt(String(value), 10);
@@ -7,7 +15,7 @@ function parsePositiveInt(value) {
 }
 
 async function submitItemRequest(req, res) {
-  const { itemId, quantityRequested, department, purpose, recipientRoom } = req.body;
+  const { itemId, requestedBy, quantityRequested, department, purpose, recipientRoom } = req.body;
 
   if (!itemId || !quantityRequested || !department || !purpose || !recipientRoom) {
     return res.status(400).json({
@@ -17,6 +25,7 @@ async function submitItemRequest(req, res) {
   }
 
   const parsedItemId = parsePositiveInt(itemId);
+  const parsedRequestedBy = requestedBy === undefined ? null : parsePositiveInt(requestedBy);
   const parsedQuantity = parsePositiveInt(quantityRequested);
 
   if (!parsedItemId) {
@@ -33,6 +42,13 @@ async function submitItemRequest(req, res) {
     });
   }
 
+  if (requestedBy !== undefined && !parsedRequestedBy) {
+    return res.status(400).json({
+      ok: false,
+      message: 'requestedBy must be a positive integer when provided',
+    });
+  }
+
   try {
     const existingItem = await findItemById(parsedItemId);
 
@@ -43,8 +59,19 @@ async function submitItemRequest(req, res) {
       });
     }
 
+    const fallbackRequesterId = await findDefaultRequesterId();
+    const requesterId = parsedRequestedBy || fallbackRequesterId;
+
+    if (!requesterId) {
+      return res.status(400).json({
+        ok: false,
+        message: 'No active user found to assign as request owner',
+      });
+    }
+
     const createdRequest = await createItemRequest({
       itemId: parsedItemId,
+      requestedBy: requesterId,
       quantityRequested: parsedQuantity,
       department: String(department).trim(),
       purpose: String(purpose).trim(),
@@ -65,6 +92,145 @@ async function submitItemRequest(req, res) {
   }
 }
 
+async function getItemRequests(_req, res) {
+  try {
+    const requests = await listItemRequests();
+
+    res.status(200).json({
+      ok: true,
+      data: requests,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: 'Failed to load item requests',
+      error: error.message,
+    });
+  }
+}
+
+async function updateItemRequestReview(req, res) {
+  const requestId = parsePositiveInt(req.params.requestId);
+  const { status, rejectionReason } = req.body;
+  const normalizedStatus = String(status || '').toLowerCase();
+
+  if (!requestId) {
+    return res.status(400).json({
+      ok: false,
+      message: 'requestId must be a positive integer',
+    });
+  }
+
+  if (!['approved', 'rejected'].includes(normalizedStatus)) {
+    return res.status(400).json({
+      ok: false,
+      message: "status must be either 'approved' or 'rejected'",
+    });
+  }
+
+  if (normalizedStatus === 'rejected' && !String(rejectionReason || '').trim()) {
+    return res.status(400).json({
+      ok: false,
+      message: 'rejectionReason is required when rejecting a request',
+    });
+  }
+
+  try {
+    const request = await findItemRequestById(requestId);
+
+    if (!request) {
+      return res.status(404).json({
+        ok: false,
+        message: 'Item request not found',
+      });
+    }
+
+    if (!['pending', 'approved'].includes(String(request.status))) {
+      return res.status(409).json({
+        ok: false,
+        message: "Only pending or approved requests can be reviewed",
+      });
+    }
+
+    const actorId = parsePositiveInt(req.user?.id || req.user?.userId) || (await findDefaultInventoryManagerId());
+
+    if (!actorId) {
+      return res.status(400).json({
+        ok: false,
+        message: 'No active inventory manager found to review the request',
+      });
+    }
+
+    const updatedRequest = await reviewItemRequest({
+      requestId,
+      reviewedBy: actorId,
+      status: normalizedStatus,
+      rejectionReason: normalizedStatus === 'rejected' ? String(rejectionReason).trim() : null,
+    });
+
+    res.status(200).json({
+      ok: true,
+      message: `Item request ${normalizedStatus}`,
+      data: updatedRequest,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      message: 'Failed to review item request',
+      error: error.message,
+    });
+  }
+}
+
+async function issueItemRequest(req, res) {
+  const requestId = parsePositiveInt(req.params.requestId);
+
+  if (!requestId) {
+    return res.status(400).json({
+      ok: false,
+      message: 'requestId must be a positive integer',
+    });
+  }
+
+  try {
+    const actorId = parsePositiveInt(req.user?.id || req.user?.userId) || (await findDefaultInventoryManagerId());
+
+    if (!actorId) {
+      return res.status(400).json({
+        ok: false,
+        message: 'No active inventory manager found to issue the request',
+      });
+    }
+
+    const result = await issueApprovedItemRequest({
+      requestId,
+      issuedBy: actorId,
+    });
+
+    res.status(200).json({
+      ok: true,
+      message: 'Item request issued successfully',
+      data: result,
+    });
+  } catch (error) {
+    const statusCode =
+      error.message === 'Item request not found'
+        ? 404
+        : error.message === 'Only approved requests can be issued' || error.message === 'Insufficient stock to issue this request'
+          ? 409
+          : 500;
+
+    res.status(statusCode).json({
+      ok: false,
+      message: statusCode === 500 ? 'Failed to issue item request' : error.message,
+      error: error.message,
+    });
+  }
+}
+
 module.exports = {
   submitItemRequest,
+  getItemRequests,
+  updateItemRequestReview,
+  issueItemRequest,
 };

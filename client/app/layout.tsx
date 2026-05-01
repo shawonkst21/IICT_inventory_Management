@@ -17,8 +17,8 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
     return (
-        <html lang="en" className={poppins.variable} suppressHydrationWarning>
-            <body>
+        <html lang="en" className={`${poppins.variable} h-screen overflow-hidden`} suppressHydrationWarning>
+            <body className="h-screen overflow-hidden">
                 <ThemeContextProvider>
                     <LenisScroll />            
                     {children}

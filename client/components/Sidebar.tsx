@@ -13,6 +13,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { useState } from "react";
+import { useSidebar } from "@/context/SidebarContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/Tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
@@ -47,7 +48,7 @@ const mainItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, setCollapsed } = useSidebar();
   const [openSub, setOpenSub] = useState<Record<string, boolean>>({});
 
   const toggle = (t: string) => setOpenSub((p) => ({ ...p, [t]: !p[t] }));

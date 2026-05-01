@@ -5,12 +5,13 @@ import { usePathname } from "next/navigation"
 import {
   Bell,
   FileText,
+  History,
   Package,
   ChevronLeft,
   ChevronDown,
   ChevronUp,
 } from "lucide-react"
-import { useState } from "react"
+import { useLayoutEffect, useState } from "react"
 import type { LucideIcon } from "lucide-react"
 import {
   Tooltip,
@@ -38,6 +39,7 @@ interface MenuItem {
 const mainItems: MenuItem[] = [
   { title: "My Requests", url: "/lab_Assistant/my-requests", icon: FileText },
   { title: "Item Requests", url: "/lab_Assistant/item-requests", icon: Package },
+  { title: "Request History", url: "/lab_Assistant/item-requests/history", icon: History },
   { title: "Notifications", url: "/lab_Assistant/notifications", icon: Bell },
 ]
 
@@ -46,15 +48,25 @@ export default function StafSidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [openSub, setOpenSub] = useState<Record<string, boolean>>({})
 
+  useLayoutEffect(() => {
+    document.documentElement.style.setProperty(
+      "--staff-sidebar-width",
+      collapsed ? "4rem" : "16rem",
+    )
+  }, [collapsed])
+
   const toggle = (t: string) =>
     setOpenSub((p) => ({ ...p, [t]: !p[t] }))
 
-  const isActive = (url: string) =>
-    pathname === url || pathname.startsWith(url + "/")
+  const isActive = (url: string) => pathname === url
 
   const base = "flex items-center rounded-lg px-3 py-2 transition"
   const active = "bg-black text-white"
   const normal = "text-black hover:bg-slate-100"
+  const labelMotion =
+    "overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-in-out"
+  const expandedLabel = "max-w-40 opacity-100 translate-x-0"
+  const collapsedLabel = "max-w-0 opacity-0 -translate-x-2"
 
   const renderItem = (item: MenuItem) => {
     const hasSub = item.subItems?.length
@@ -73,19 +85,26 @@ export default function StafSidebar() {
         } ${itemActive ? active : normal}`}
       >
         <item.icon className="h-5 w-5 shrink-0" />
-        {!collapsed && (
-          <>
-            <span className="text-sm font-medium flex-1 text-left">
-              {item.title}
-            </span>
-            {hasSub &&
-              (openMenu ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              ))}
-          </>
-        )}
+        <span
+          className={`text-sm font-medium flex-1 text-left ${labelMotion} ${
+            collapsed ? collapsedLabel : expandedLabel
+          }`}
+        >
+          {item.title}
+        </span>
+        {hasSub ? (
+          <span
+            className={`ml-auto ${labelMotion} ${
+              collapsed ? collapsedLabel : expandedLabel
+            }`}
+          >
+            {openMenu ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </span>
+        ) : null}
       </button>
     )
 
@@ -125,7 +144,7 @@ export default function StafSidebar() {
 
   return (
     <aside
-      className={`fixed left-0 top-0 bottom-0 border-r border-slate-200 bg-white transition-all duration-300 flex flex-col ${
+      className={`fixed left-0 top-0 bottom-0 z-20 shrink-0 border-r border-slate-200 bg-white flex flex-col transition-[width] duration-300 ease-in-out will-change-[width] ${
         collapsed ? "w-16" : "w-64"
       }`}
     >
@@ -153,7 +172,7 @@ export default function StafSidebar() {
 
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1.5 rounded-md hover:bg-slate-100"
+            className="p-1.5 rounded-md hover:bg-slate-100 transition-transform duration-300 ease-in-out"
           >
             <ChevronLeft
               className={`h-4 w-4 text-black transition ${
@@ -174,7 +193,7 @@ export default function StafSidebar() {
         <DropdownMenu>
           <div className={`flex ${collapsed ? "justify-center" : ""}`}>
             <DropdownMenuTrigger>
-              <button className="w-full hover:opacity-80 transition">
+              <button className="w-full hover:opacity-80 transition-opacity duration-300 ease-in-out">
                 <div
                   className={`flex ${
                     collapsed
@@ -187,16 +206,20 @@ export default function StafSidebar() {
                     <AvatarFallback>ST</AvatarFallback>
                   </Avatar>
 
-                  {!collapsed && (
-                    <div className="text-left">
-                      <p className="text-sm font-semibold text-slate-800">
-                        Staff Member
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        Lab Assistant
-                      </p>
-                    </div>
-                  )}
+                  <div
+                    className={`overflow-hidden text-left transition-[max-width,opacity,transform] duration-300 ease-in-out ${
+                      collapsed
+                        ? "max-w-0 opacity-0 -translate-x-2"
+                        : "max-w-32 opacity-100 translate-x-0"
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-slate-800 whitespace-nowrap">
+                      Staff Member
+                    </p>
+                    <p className="text-xs text-slate-500 whitespace-nowrap">
+                      Lab Assistant
+                    </p>
+                  </div>
                 </div>
               </button>
             </DropdownMenuTrigger>

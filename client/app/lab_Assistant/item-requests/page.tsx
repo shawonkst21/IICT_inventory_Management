@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { FormEvent, useEffect, useMemo, useState, useRef } from "react"
 import { Package, AlertCircle, CheckCircle, Loader2, ChevronDown } from "lucide-react"
 import {
@@ -13,6 +15,7 @@ import {
 import { fetchItemOptions, submitItemRequest, type ItemOption } from "../../../lib/api"
 
 export default function ItemRequestsPage() {
+  const router = useRouter()
   const [items, setItems] = useState<ItemOption[]>([])
   const [loadingItems, setLoadingItems] = useState(true)
   const [fetchError, setFetchError] = useState("")
@@ -100,16 +103,20 @@ export default function ItemRequestsPage() {
       return
     }
 
+    const requestPayload = {
+      itemId: selectedItemId,
+      quantityRequested: parsedQty,
+      department: department.trim(),
+      purpose: purpose.trim(),
+      recipientRoom: roomNo.trim(),
+    }
+
+    console.log("Item request form submitted:", requestPayload)
+
     setSubmitting(true)
 
     try {
-      await submitItemRequest({
-        itemId: selectedItemId,
-        quantityRequested: parsedQty,
-        department: department.trim(),
-        purpose: purpose.trim(),
-        recipientRoom: roomNo.trim(),
-      })
+      await submitItemRequest(requestPayload)
 
       setSubmitMessage("Item request submitted successfully")
       setQuantity("")
@@ -118,6 +125,7 @@ export default function ItemRequestsPage() {
       setRoomNo("")
       setSelectedItemId(null)
       setItemSearch("")
+      router.push("/lab_Assistant/item-requests/history?submitted=1")
     } catch (error) {
       setSubmitError((error as Error).message || "Failed to submit request")
     } finally {
@@ -151,6 +159,14 @@ export default function ItemRequestsPage() {
         <p className="text-black text-opacity-70 text-sm mb-8">
           Submit a request to obtain items from inventory for your department.
         </p>
+        <div className="mb-6 flex justify-end">
+          <Link
+            href="/lab_Assistant/item-requests/history"
+            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-black shadow-sm transition hover:bg-slate-50"
+          >
+            View Request History
+          </Link>
+        </div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
           <form className="space-y-8" onSubmit={handleSubmit}>

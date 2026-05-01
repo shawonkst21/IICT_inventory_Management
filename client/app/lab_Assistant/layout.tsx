@@ -6,9 +6,14 @@ export default function StafLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="h-screen bg-white overflow-hidden">
+    <div className="h-screen overflow-hidden bg-slate-50">
       <StafSidebar />
-      <main className="fixed top-0 right-0 bottom-0 w-[calc(100%-16rem)] overflow-y-auto" style={{ left: 'var(--sidebar-width, 16rem)' }}>{children}</main>
+      <main
+        className="fixed top-0 right-0 bottom-0 overflow-y-auto bg-slate-50 transition-[left] duration-300 ease-in-out will-change-[left]"
+        style={{ left: "var(--staff-sidebar-width, 16rem)" }}
+      >
+        {children}
+      </main>
     </div>
   )
 }

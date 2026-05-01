@@ -1,4 +1,26 @@
+"use client"
+
 import Sidebar from "../../components/Sidebar"
+import { SidebarProvider, useSidebar } from "@/context/SidebarContext"
+
+function InventoryLayout({ children }: { children: React.ReactNode }) {
+  const { collapsed } = useSidebar()
+
+  return (
+    <div className="flex bg-white h-screen overflow-hidden">
+      <Sidebar />
+      <main
+        className={`flex-1 bg-white transition-all duration-300 overflow-y-auto ${
+          collapsed ? "ml-16" : "ml-64"
+        }`}
+      >
+        <div className="p-8">
+          {children}
+        </div>
+      </main>
+    </div>
+  )
+}
 
 export default function AdminLayout({
   children,
@@ -6,9 +28,8 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="h-screen bg-white overflow-hidden">
-      <Sidebar />
-      <main className="fixed top-0 right-0 bottom-0 w-[calc(100%-16rem)] overflow-y-auto" style={{ left: 'var(--sidebar-width, 16rem)' }}>{children}</main>
-    </div>
+    <SidebarProvider>
+      <InventoryLayout>{children}</InventoryLayout>
+    </SidebarProvider>
   )
 }
