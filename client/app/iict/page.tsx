@@ -55,7 +55,7 @@ export default function HomePage() {
           <p className="text-xs">Join community of 1m+ founders </p>
         </div>
         <h1 className="mt-2 text-5xl/15 md:text-[64px]/19 font-semibold max-w-3xl">
-          <span className="bg-gradient-to-r from-[#923FEF] dark:from-[#C99DFF] to-[#C35DE8] dark:to-[#E1C9FF] bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-[#923FEF] dark:from-[#C99DFF] to-[#C35DE8] dark:to-[#E1C9FF] bg-clip-text text-transparent">
             IICT
           </span>
           {" "}Inventory Management System
@@ -65,13 +65,12 @@ export default function HomePage() {
           and distribution across IICT labs and departments.
         </p>
         <div className="flex items-center gap-4 mt-8">
-          <Link href="/inventory_manager" className="bg-purple-600 hover:bg-purple-700 transition text-white rounded-md px-6 h-11 flex items-center justify-center">
-            Get started
+          <Link href="/auth/login" className="bg-purple-600 hover:bg-purple-700 transition text-white rounded-md px-6 h-11 flex items-center justify-center">
+            Sign In
           </Link>
-          <button className="flex items-center gap-2 border border-purple-900 transition text-slate-600 dark:text-white rounded-md px-6 h-11">
-            <VideoIcon strokeWidth={1} />
-            <span>Watch demo</span>
-          </button>
+          <Link href="/auth/register" className="flex items-center gap-2 border border-purple-900 transition text-slate-600 dark:text-white rounded-md px-6 h-11 hover:bg-purple-50 dark:hover:bg-purple-900/10">
+            <span>Create Account</span>
+          </Link>
         </div>
         <h3 className="text-base text-center text-slate-400 mt-28 pb-14 font-medium">
           Core inventory operations covered —

@@ -59,13 +59,12 @@ async function submitItemRequest(req, res) {
       });
     }
 
-    const fallbackRequesterId = await findDefaultRequesterId();
-    const requesterId = parsedRequestedBy || fallbackRequesterId;
+    const requesterId = parsePositiveInt(req.user?.id || req.user?.userId);
 
     if (!requesterId) {
       return res.status(400).json({
         ok: false,
-        message: 'No active user found to assign as request owner',
+        message: 'Authenticated user id is required to submit a request',
       });
     }
 
@@ -94,12 +93,19 @@ async function submitItemRequest(req, res) {
 
 async function getItemRequests(_req, res) {
   try {
-    const requests = await listItemRequests();
+    // If the caller is admin or manager, return all requests.
+    // Otherwise return only requests created by the authenticated user.
+    const callerRole = String(_req.user?.role || _req.user?.userRole || '').toLowerCase();
+    const callerId = parsePositiveInt(_req.user?.id || _req.user?.userId);
 
-    res.status(200).json({
-      ok: true,
-      data: requests,
-    });
+    let requests;
+    if (callerRole === 'admin' || callerRole === 'manager' || callerRole === 'inventory_manager') {
+      requests = await listItemRequests();
+    } else {
+      requests = await listItemRequests(callerId);
+    }
+
+    res.status(200).json({ ok: true, data: requests });
   } catch (error) {
     res.status(500).json({
       ok: false,

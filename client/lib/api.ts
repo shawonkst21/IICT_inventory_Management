@@ -1,5 +1,24 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
+function getAuthToken() {
+  if (typeof window === 'undefined') {
+    return ''
+  }
+
+  return localStorage.getItem('token') || ''
+}
+
+function getAuthHeaders(extraHeaders: HeadersInit = {}): HeadersInit {
+  const token = getAuthToken()
+
+  return token
+    ? {
+        Authorization: `Bearer ${token}`,
+        ...extraHeaders,
+      }
+    : extraHeaders
+}
+
 export type ItemOption = {
   id: number
   name: string
@@ -15,6 +34,7 @@ type ApiResponse<T> = {
 export async function fetchItemOptions(): Promise<ItemOption[]> {
   const response = await fetch(`${API_BASE_URL}/api/items/options`, {
     cache: "no-store",
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
@@ -97,9 +117,9 @@ export async function submitItemRequest(
 ): Promise<SubmitItemRequestResponse> {
   const response = await fetch(`${API_BASE_URL}/api/item-requests`, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify(payload),
   })
 
@@ -115,6 +135,7 @@ export async function submitItemRequest(
 export async function fetchItemRequests(): Promise<ItemRequestRecord[]> {
   const response = await fetch(`${API_BASE_URL}/api/item-requests`, {
     cache: "no-store",
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
@@ -136,9 +157,9 @@ export async function reviewItemRequest(
 ): Promise<ItemRequestRecord> {
   const response = await fetch(`${API_BASE_URL}/api/item-requests/${requestId}/review`, {
     method: "PATCH",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify(payload),
   })
 
@@ -155,6 +176,7 @@ export async function reviewItemRequest(
 export async function issueItemRequest(requestId: number): Promise<IssueItemRequestResponse> {
   const response = await fetch(`${API_BASE_URL}/api/item-requests/${requestId}/issue`, {
     method: "POST",
+    headers: getAuthHeaders(),
   })
 
   const responseData = (await response.json()) as ApiResponse<IssueItemRequestResponse>
@@ -187,6 +209,7 @@ export type StockLevelItem = {
 export async function fetchCategories(): Promise<Category[]> {
   const response = await fetch(`${API_BASE_URL}/api/items/categories`, {
     cache: "no-store",
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
@@ -211,6 +234,7 @@ export async function fetchAdminCategories(search = ""): Promise<AdminCategory[]
 
   const response = await fetch(`${API_BASE_URL}/api/items/admin/categories?${params.toString()}`, {
     cache: "no-store",
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
@@ -229,9 +253,9 @@ export async function fetchAdminCategories(search = ""): Promise<AdminCategory[]
 export async function createAdminCategory(name: string, description?: string): Promise<AdminCategory> {
   const response = await fetch(`${API_BASE_URL}/api/items/admin/categories`, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify({ name, description }),
   })
 
@@ -247,9 +271,9 @@ export async function createAdminCategory(name: string, description?: string): P
 export async function updateAdminCategory(categoryId: number, name: string, description?: string): Promise<AdminCategory> {
   const response = await fetch(`${API_BASE_URL}/api/items/admin/categories/${categoryId}`, {
     method: "PATCH",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify({ name, description }),
   })
 
@@ -265,6 +289,7 @@ export async function updateAdminCategory(categoryId: number, name: string, desc
 export async function deleteAdminCategory(categoryId: number): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/items/admin/categories/${categoryId}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   })
 
   const responseData = (await response.json()) as ApiResponse<null>
@@ -292,6 +317,7 @@ export async function fetchAdminItems(search = ""): Promise<AdminItem[]> {
 
   const response = await fetch(`${API_BASE_URL}/api/items/admin/items?${params.toString()}`, {
     cache: "no-store",
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
@@ -310,9 +336,9 @@ export async function fetchAdminItems(search = ""): Promise<AdminItem[]> {
 export async function createAdminItem(payload: CreateItemPayload & { description?: string }): Promise<CreatedItem> {
   const response = await fetch(`${API_BASE_URL}/api/items/admin/items`, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify(payload),
   })
 
@@ -328,9 +354,9 @@ export async function createAdminItem(payload: CreateItemPayload & { description
 export async function updateAdminItem(itemId: number, payload: CreateItemPayload & { description?: string }): Promise<CreatedItem> {
   const response = await fetch(`${API_BASE_URL}/api/items/admin/items/${itemId}`, {
     method: "PATCH",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify(payload),
   })
 
@@ -346,6 +372,7 @@ export async function updateAdminItem(itemId: number, payload: CreateItemPayload
 export async function deleteAdminItem(itemId: number): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/items/admin/items/${itemId}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   })
 
   const responseData = (await response.json()) as ApiResponse<null>
@@ -368,6 +395,7 @@ export async function fetchStockLevels(
 
   const response = await fetch(`${API_BASE_URL}/api/items/stock-levels?${params.toString()}`, {
     cache: "no-store",
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
@@ -388,6 +416,7 @@ export async function fetchItemsByCategory(categoryId: number): Promise<ItemOpti
 
   const response = await fetch(`${API_BASE_URL}/api/items/options/by-category?${params.toString()}`, {
     cache: "no-store",
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {
@@ -425,9 +454,9 @@ export type CreatedItem = {
 export async function createItem(payload: CreateItemPayload): Promise<CreatedItem> {
   const response = await fetch(`${API_BASE_URL}/api/items`, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify(payload),
   })
 
@@ -489,9 +518,9 @@ export async function createItemReceipt(
 ): Promise<CreateItemReceiptResponse> {
   const response = await fetch(`${API_BASE_URL}/api/item-receipts`, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify(payload),
   })
 
@@ -507,6 +536,7 @@ export async function createItemReceipt(
 export async function fetchItemReceipts(): Promise<ItemReceiptRecord[]> {
   const response = await fetch(`${API_BASE_URL}/api/item-receipts`, {
     cache: "no-store",
+    headers: getAuthHeaders(),
   })
 
   if (!response.ok) {

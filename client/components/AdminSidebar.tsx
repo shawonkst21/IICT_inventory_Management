@@ -11,12 +11,14 @@ import {
   ChevronUp,
 } from "lucide-react"
 import { useState } from "react"
+import { useAuth } from "@/context/AuthContext"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "./ui/Tooltip"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import ProfileSheet from "./ProfileSheet"
 import { useSidebar } from "@/context/SidebarContext"
 import {
   DropdownMenu,
@@ -56,13 +58,27 @@ const mainItems = [
 export default function AdminSidebar() {
   const pathname = usePathname()
   const { collapsed, setCollapsed } = useSidebar()
+  const { user, logout } = useAuth()
   const [openSub, setOpenSub] = useState<Record<string, boolean>>({})
+  const [profileSheetOpen, setProfileSheetOpen] = useState(false)
+  const displayName = user?.name || "Admin User"
+  const displayEmail = user?.email || "admin@iict.local"
+  const avatarSeed = encodeURIComponent(displayName)
+  const initials = displayName
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
 
   const toggle = (t: string) =>
     setOpenSub((p) => ({ ...p, [t]: !p[t] }))
 
-  const isActive = (url: string) =>
-    pathname === url || pathname.startsWith(url + "/")
+  const isActive = (url: string) => {
+    // Keep dashboard active only on exact /admin to avoid multiple active items.
+    if (url === "/admin") return pathname === url
+    return pathname === url || pathname.startsWith(url + "/")
+  }
 
   const base = "flex items-center rounded-lg px-3 py-2 transition"
   const active = "bg-black text-white hover:bg-black"
@@ -78,8 +94,11 @@ export default function AdminSidebar() {
 
   const renderItem = (item: (typeof mainItems)[number]) => {
     const hasSub = item.subItems?.length
-    const itemActive = isActive(item.url)
-    const hasActiveSub = item.subItems?.some((s) => pathname === s.url)
+    const hasActiveSub =
+      item.subItems?.some(
+        (s) => pathname === s.url || pathname.startsWith(s.url + "/")
+      ) ?? false
+    const itemActive = hasSub ? false : isActive(item.url)
     const openMenu = openSub[item.title] || hasActiveSub
 
     const button = (
@@ -232,8 +251,8 @@ export default function AdminSidebar() {
                     }`}
                   >
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" />
-                      <AvatarFallback>AD</AvatarFallback>
+                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`} />
+                      <AvatarFallback>{initials}</AvatarFallback>
                     </Avatar>
 
                     <div
@@ -244,10 +263,10 @@ export default function AdminSidebar() {
                       }`}
                     >
                       <p className="truncate text-sm font-semibold text-slate-800 whitespace-nowrap">
-                        Admin User
+                        {displayName}
                       </p>
                       <p className="truncate text-xs text-slate-500 whitespace-nowrap">
-                        Administrator
+                        {displayEmail}
                       </p>
                     </div>
                   </div>
@@ -262,7 +281,7 @@ export default function AdminSidebar() {
                 </DropdownMenuLabel>
                 <DropdownMenuItem
                   onClick={() =>
-                    (window.location.href = "#profile")
+                    setProfileSheetOpen(true)
                   }
                 >
                   Profile
@@ -280,7 +299,7 @@ export default function AdminSidebar() {
 
               <DropdownMenuGroup>
                 <DropdownMenuItem
-                  onClick={() => (window.location.href = "/")}
+                  onClick={logout}
                   className="text-red-600!"
                 >
                   Logout
@@ -290,6 +309,7 @@ export default function AdminSidebar() {
           </DropdownMenu>
         </div>
       </div>
+      <ProfileSheet open={profileSheetOpen} onOpenChange={setProfileSheetOpen} />
     </aside>
   )
 }

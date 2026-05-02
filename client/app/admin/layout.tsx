@@ -2,6 +2,7 @@
 
 import AdminSidebar from "@/components/AdminSidebar"
 import { SidebarProvider, useSidebar } from "@/context/SidebarContext"
+import { ProtectedRoute } from "@/components/ProtectedRoute"
 
 function AdminLayoutShell({ children }: { children: React.ReactNode }) {
   const { collapsed } = useSidebar()
@@ -26,8 +27,10 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   return (
-    <SidebarProvider>
-      <AdminLayoutShell>{children}</AdminLayoutShell>
-    </SidebarProvider>
+    <ProtectedRoute requiredRoles={['admin']}>
+      <SidebarProvider>
+        <AdminLayoutShell>{children}</AdminLayoutShell>
+      </SidebarProvider>
+    </ProtectedRoute>
   )
 }

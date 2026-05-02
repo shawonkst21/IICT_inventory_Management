@@ -14,8 +14,10 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useSidebar } from "@/context/SidebarContext";
+import { useAuth } from "@/context/AuthContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/Tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import ProfileSheet from "./ProfileSheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,14 +44,24 @@ const mainItems = [
     url: "/inventory_manager/requests",
     icon: ClipboardList,
   },
-  { title: "Issuance", url: "/inventory_manager/orders", icon: ShoppingCart },
-  { title: "Notifications", url: "/lab_Assistant/notifications", icon: Bell },
+  { title: "Issuance", url: "/inventory_manager/Issuance", icon: ShoppingCart },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { collapsed, setCollapsed } = useSidebar();
+  const { user, logout } = useAuth();
   const [openSub, setOpenSub] = useState<Record<string, boolean>>({});
+  const [profileSheetOpen, setProfileSheetOpen] = useState(false);
+  const displayName = user?.name || "Inventory Manager";
+  const displayEmail = user?.email || "manager@iict.local";
+  const avatarSeed = encodeURIComponent(displayName);
+  const initials = displayName
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   const toggle = (t: string) => setOpenSub((p) => ({ ...p, [t]: !p[t] }));
 
@@ -72,7 +84,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`fixed left-0 top-0 bottom-0 border-r border-slate-200 bg-white transition-all duration-300 flex flex-col ${
+      className={`fixed left-0 top-0 bottom-0 z-40 border-r border-slate-200 bg-white transition-all duration-300 flex flex-col ${
         collapsed ? "w-16" : "w-64"
       }`}
     >
@@ -207,17 +219,17 @@ export default function Sidebar() {
                   }`}
                 >
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=John" />
-                    <AvatarFallback>JD</AvatarFallback>
+                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`} />
+                    <AvatarFallback>{initials}</AvatarFallback>
                   </Avatar>
 
                   {!collapsed && (
                     <div className="text-left">
-                      <p className="text-sm font-semibold text-slate-800">
-                        John Doe
+                          <p className="text-sm font-semibold text-slate-800">
+                        {displayName}
                       </p>
-                      <p className="text-xs text-slate-500">
-                        Inventory Manager
+                          <p className="text-xs text-slate-500">
+                        {displayEmail}
                       </p>
                     </div>
                   )}
@@ -229,18 +241,16 @@ export default function Sidebar() {
           <DropdownMenuContent align="start" className="w-48" positionAbove>
             <DropdownMenuGroup>
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => (window.location.href = "#profile")}>
+              <DropdownMenuItem onClick={() => setProfileSheetOpen(true)}>
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => (window.location.href = "#settings")}>
-                Settings
-              </DropdownMenuItem>
+              
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
 
             <DropdownMenuItem
-              onClick={() => (window.location.href = "/")}
+              onClick={logout}
               className="text-red-600!"
             >
               Logout
@@ -248,6 +258,7 @@ export default function Sidebar() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <ProfileSheet open={profileSheetOpen} onOpenChange={setProfileSheetOpen} />
     </aside>
   );
 }

@@ -13,8 +13,10 @@ import {
 } from "lucide-react";
 import { useLayoutEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/Tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import ProfileSheet from "./ProfileSheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,8 +51,10 @@ const mainItems: MenuItem[] = [
 
 export default function StafSidebar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [openSub, setOpenSub] = useState<Record<string, boolean>>({});
+  const [profileSheetOpen, setProfileSheetOpen] = useState(false);
 
   useLayoutEffect(() => {
     document.documentElement.style.setProperty(
@@ -66,6 +70,15 @@ export default function StafSidebar() {
   const base = "flex items-center rounded-lg px-3 py-2 transition";
   const active = "bg-[#1A1916] text-white";
   const normal = "text-black hover:bg-slate-100";
+  const displayName = user?.name || "Staff Member";
+  const displayEmail = user?.email || "staff@iict.local";
+  const avatarSeed = encodeURIComponent(displayName);
+  const initials = displayName
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   const labelMotion =
     "overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-in-out";
   const expandedLabel = "max-w-40 opacity-100 translate-x-0";
@@ -201,8 +214,8 @@ export default function StafSidebar() {
                   }`}
                 >
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Staff" />
-                    <AvatarFallback>ST</AvatarFallback>
+                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`} />
+                    <AvatarFallback>{initials}</AvatarFallback>
                   </Avatar>
 
                   <div
@@ -212,11 +225,11 @@ export default function StafSidebar() {
                         : "max-w-32 opacity-100 translate-x-0"
                     }`}
                   >
-                    <p className="text-sm font-semibold text-slate-800 whitespace-nowrap">
-                      Staff Member
+                    <p className="text-sm font-semibold text-slate-800 whitespace-nowrap truncate">
+                      {displayName}
                     </p>
-                    <p className="text-xs text-slate-500 whitespace-nowrap">
-                      Lab Assistant
+                    <p className="text-xs text-slate-500 whitespace-nowrap truncate">
+                      {displayEmail}
                     </p>
                   </div>
                 </div>
@@ -230,21 +243,19 @@ export default function StafSidebar() {
                 My Account
               </DropdownMenuLabel>
               <DropdownMenuItem
-                onClick={() => (window.location.href = "#profile")}
+                onClick={() => setProfileSheetOpen(true)}
               >
                 Profile
               </DropdownMenuItem>
             </DropdownMenuGroup>
 
-            <DropdownMenuItem
-              onClick={() => (window.location.href = "/")}
-              className="text-red-600!"
-            >
+            <DropdownMenuItem onClick={logout} className="text-red-600!">
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <ProfileSheet open={profileSheetOpen} onOpenChange={setProfileSheetOpen} />
     </aside>
   );
 }

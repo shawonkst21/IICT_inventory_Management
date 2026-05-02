@@ -159,7 +159,7 @@ export default function InventoryRequestBoard({ mode }: InventoryRequestBoardPro
     if (typeof request.stock_quantity === 'number' && request.quantity_requested > request.stock_quantity) {
       setRejectTarget(request)
       setRejectionReason(
-        `Requested ${request.quantity_requested}, but only ${request.stock_quantity} available. Provide a rejection reason or adjust stock.`,
+        `Requested ${request.quantity_requested}, but only ${request.stock_quantity} available.`,
       )
       setBusyRequestId(null)
       return
@@ -257,9 +257,9 @@ export default function InventoryRequestBoard({ mode }: InventoryRequestBoardPro
                 </button>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className={`overflow-x-auto ${reviewRequests.length > 10 ? "max-h-[500px] overflow-y-auto" : ""}`}>
                 <table className="min-w-full divide-y divide-slate-200 text-left">
-                  <thead className="bg-slate-50">
+                  <thead className="bg-slate-50 sticky top-0 z-10">
                     <tr>
                       <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Item</th>
                       <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Qty</th>
@@ -354,69 +354,69 @@ export default function InventoryRequestBoard({ mode }: InventoryRequestBoardPro
             </section>
           ) : null}
 
-          <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-6 py-5">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900">Approved Requests</h2>
-                <p className="text-sm text-slate-600">Issue approved requests and monitor the items that are ready for release.</p>
-              </div>
-              {mode === "review" ? (
+          {mode === "issuance" ? (
+            <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-6 py-5">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">Approved Requests</h2>
+                  <p className="text-sm text-slate-600">Issue approved requests and monitor the items that are ready for release.</p>
+                </div>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                   {approvedCount} ready for issuance
                 </span>
-              ) : null}
-            </div>
+              </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-left">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Item</th>
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Qty</th>
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Stock Qty</th>
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Dept</th>
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Requester</th>
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Date</th>
-                    <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {approvedRequests.length > 0 ? (
-                    approvedRequests.map((request) => (
-                      <tr key={request.id} className="align-top">
-                        <td className="px-6 py-4">
-                          <p className="font-semibold text-slate-900">{request.item_name}</p>
-                          <p className="text-xs text-slate-500">Approved by {request.approved_by_name || "manager"}</p>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-slate-700">{request.quantity_requested}</td>
-                        <td className="px-6 py-4 text-sm text-slate-700">{request.stock_quantity}</td>
-                        <td className="px-6 py-4 text-sm text-slate-700">{request.department || "-"}</td>
-                        <td className="px-6 py-4 text-sm text-slate-700">{request.requester_name || "-"}</td>
-                        <td className="px-6 py-4 text-sm text-slate-700">{formatDate(request.reviewed_at || request.requested_at)}</td>
-                        <td className="px-6 py-4">
-                          <button
-                            type="button"
-                            onClick={() => void handleIssue(request)}
-                            disabled={busyRequestId === request.id}
-                            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {busyRequestId === request.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackageCheck className="h-4 w-4" />}
-                            Issue
-                          </button>
+              <div className={`overflow-x-auto ${approvedRequests.length > 10 ? "max-h-[500px] overflow-y-auto" : ""}`}>
+                <table className="min-w-full divide-y divide-slate-200 text-left">
+                  <thead className="bg-slate-50 sticky top-0 z-10">
+                    <tr>
+                      <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Item</th>
+                      <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Qty</th>
+                      <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Stock Qty</th>
+                      <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Dept</th>
+                      <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Requester</th>
+                      <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Date</th>
+                      <th className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {approvedRequests.length > 0 ? (
+                      approvedRequests.map((request) => (
+                        <tr key={request.id} className="align-top">
+                          <td className="px-6 py-4">
+                            <p className="font-semibold text-slate-900">{request.item_name}</p>
+                            <p className="text-xs text-slate-500">Approved by {request.approved_by_name || "manager"}</p>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-700">{request.quantity_requested}</td>
+                          <td className="px-6 py-4 text-sm text-slate-700">{request.stock_quantity}</td>
+                          <td className="px-6 py-4 text-sm text-slate-700">{request.department || "-"}</td>
+                          <td className="px-6 py-4 text-sm text-slate-700">{request.requester_name || "-"}</td>
+                          <td className="px-6 py-4 text-sm text-slate-700">{formatDate(request.reviewed_at || request.requested_at)}</td>
+                          <td className="px-6 py-4">
+                            <button
+                              type="button"
+                              onClick={() => void handleIssue(request)}
+                              disabled={busyRequestId === request.id}
+                              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {busyRequestId === request.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackageCheck className="h-4 w-4" />}
+                              Issue
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td className="px-6 py-10 text-center text-sm text-slate-500" colSpan={7}>
+                          No approved requests waiting for issuance.
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td className="px-6 py-10 text-center text-sm text-slate-500" colSpan={7}>
-                        No approved requests waiting for issuance.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ) : null}
         </>
       )}
 

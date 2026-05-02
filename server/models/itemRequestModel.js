@@ -7,8 +7,10 @@ async function findDefaultRequesterId() {
      WHERE is_active = true
      ORDER BY
        CASE role
+         WHEN 'user' THEN 1
          WHEN 'staff' THEN 1
          WHEN 'inventory_manager' THEN 2
+         WHEN 'manager' THEN 2
          WHEN 'admin' THEN 3
         ELSE 4
        END,
@@ -42,7 +44,15 @@ async function createItemRequest({ itemId, requestedBy, quantityRequested, depar
   return insertResult.rows[0];
 }
 
-async function listItemRequests() {
+async function listItemRequests(requesterId = null) {
+  const params = [];
+  let whereClause = '';
+
+  if (requesterId) {
+    params.push(requesterId);
+    whereClause = `WHERE ir.requested_by = $${params.length}`;
+  }
+
   const result = await pool.query(
     `SELECT
        ir.id,
@@ -65,7 +75,9 @@ async function listItemRequests() {
      INNER JOIN items i ON i.id = ir.item_id
      LEFT JOIN users u ON u.id = ir.requested_by
      LEFT JOIN users reviewer ON reviewer.id = ir.approved_by
+     ${whereClause}
      ORDER BY ir.requested_at DESC, ir.id DESC`,
+    params,
   );
 
   return result.rows;

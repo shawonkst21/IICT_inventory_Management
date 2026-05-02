@@ -38,21 +38,24 @@ export default function Navbar() {
                         {link.name}
                     </Link>
                 ))}
-                <button onClick={() => setOpenMobileMenu(false)}>
+                <Link href="/auth/login" onClick={() => setOpenMobileMenu(false)}>
                     Sign in
-                </button>
+                </Link>
+                <Link href="/auth/register" onClick={() => setOpenMobileMenu(false)}>
+                    Get started
+                </Link>
                 <button className="aspect-square size-10 p-1 items-center justify-center bg-purple-600 hover:bg-purple-700 transition text-white rounded-md flex" onClick={() => setOpenMobileMenu(false)}>
                     <XIcon />
                 </button>
             </div>
             <div className="flex items-center gap-4">
                 <ThemeToggle />
-                <button className="hidden md:block hover:bg-slate-100 dark:hover:bg-purple-950 transition px-4 py-2 border border-purple-600 rounded-md">
+                <Link href="/auth/login" className="hidden md:block hover:bg-slate-100 dark:hover:bg-purple-950 transition px-4 py-2 border border-purple-600 rounded-md">
                     Sign in
-                </button>
-                <button className="hidden md:block px-4 py-2 bg-purple-600 hover:bg-purple-700 transition text-white rounded-md">
+                </Link>
+                <Link href="/auth/register" className="hidden md:block px-4 py-2 bg-purple-600 hover:bg-purple-700 transition text-white rounded-md">
                     Get started
-                </button>
+                </Link>
                 <button onClick={() => setOpenMobileMenu(!openMobileMenu)} aria-label="Toggle navigation menu" className="md:hidden">
                     <MenuIcon size={26} className="active:scale-90 transition" />
                 </button>
