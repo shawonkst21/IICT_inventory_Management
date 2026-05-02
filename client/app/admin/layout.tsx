@@ -1,4 +1,24 @@
-import AdminSidebar from "../../components/AdminSidebar"
+"use client"
+
+import AdminSidebar from "@/components/AdminSidebar"
+import { SidebarProvider, useSidebar } from "@/context/SidebarContext"
+
+function AdminLayoutShell({ children }: { children: React.ReactNode }) {
+  const { collapsed } = useSidebar()
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-[#F7F6F3]">
+      <AdminSidebar />
+      <main
+        className={`flex-1 overflow-y-auto bg-[#F7F6F3] transition-all duration-300 ${
+          collapsed ? "ml-16" : "ml-64"
+        }`}
+      >
+        <div className="p-8">{children}</div>
+      </main>
+    </div>
+  )
+}
 
 export default function AdminLayout({
   children,
@@ -6,9 +26,8 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="h-screen bg-white overflow-hidden">
-      <AdminSidebar />
-      <main className="fixed top-0 right-0 bottom-0 w-[calc(100%-16rem)] overflow-y-auto" style={{ left: 'var(--sidebar-width, 16rem)' }}>{children}</main>
-    </div>
+    <SidebarProvider>
+      <AdminLayoutShell>{children}</AdminLayoutShell>
+    </SidebarProvider>
   )
 }

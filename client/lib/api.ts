@@ -170,6 +170,7 @@ export async function issueItemRequest(requestId: number): Promise<IssueItemRequ
 export type Category = {
   id: number
   name: string
+  description?: string | null
 }
 
 export type StockLevelItem = {
@@ -199,6 +200,159 @@ export async function fetchCategories(): Promise<Category[]> {
   }
 
   return payload.data
+}
+
+export type AdminCategory = Category
+
+export async function fetchAdminCategories(search = ""): Promise<AdminCategory[]> {
+  const params = new URLSearchParams()
+
+  if (search) params.set("search", search)
+
+  const response = await fetch(`${API_BASE_URL}/api/items/admin/categories?${params.toString()}`, {
+    cache: "no-store",
+  })
+
+  if (!response.ok) {
+    throw new Error("Unable to fetch admin categories")
+  }
+
+  const payload = (await response.json()) as ApiResponse<AdminCategory[]>
+
+  if (!payload.ok || !Array.isArray(payload.data)) {
+    throw new Error(payload.message || "Unexpected response from admin categories endpoint")
+  }
+
+  return payload.data
+}
+
+export async function createAdminCategory(name: string, description?: string): Promise<AdminCategory> {
+  const response = await fetch(`${API_BASE_URL}/api/items/admin/categories`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name, description }),
+  })
+
+  const responseData = (await response.json()) as ApiResponse<AdminCategory>
+
+  if (!response.ok || !responseData.ok) {
+    throw new Error(responseData.message || "Failed to create category")
+  }
+
+  return responseData.data!
+}
+
+export async function updateAdminCategory(categoryId: number, name: string, description?: string): Promise<AdminCategory> {
+  const response = await fetch(`${API_BASE_URL}/api/items/admin/categories/${categoryId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name, description }),
+  })
+
+  const responseData = (await response.json()) as ApiResponse<AdminCategory>
+
+  if (!response.ok || !responseData.ok) {
+    throw new Error(responseData.message || "Failed to update category")
+  }
+
+  return responseData.data!
+}
+
+export async function deleteAdminCategory(categoryId: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/items/admin/categories/${categoryId}`, {
+    method: "DELETE",
+  })
+
+  const responseData = (await response.json()) as ApiResponse<null>
+
+  if (!response.ok || !responseData.ok) {
+    throw new Error(responseData.message || "Failed to delete category")
+  }
+}
+
+export type AdminItem = {
+  id: number
+  category_id: number
+  category_name: string | null
+  name: string
+  description: string | null
+  unit: string
+  current_stock: number
+  low_stock_threshold: number
+}
+
+export async function fetchAdminItems(search = ""): Promise<AdminItem[]> {
+  const params = new URLSearchParams()
+
+  if (search) params.set("search", search)
+
+  const response = await fetch(`${API_BASE_URL}/api/items/admin/items?${params.toString()}`, {
+    cache: "no-store",
+  })
+
+  if (!response.ok) {
+    throw new Error("Unable to fetch admin items")
+  }
+
+  const payload = (await response.json()) as ApiResponse<AdminItem[]>
+
+  if (!payload.ok || !Array.isArray(payload.data)) {
+    throw new Error(payload.message || "Unexpected response from admin items endpoint")
+  }
+
+  return payload.data
+}
+
+export async function createAdminItem(payload: CreateItemPayload & { description?: string }): Promise<CreatedItem> {
+  const response = await fetch(`${API_BASE_URL}/api/items/admin/items`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  })
+
+  const responseData = (await response.json()) as ApiResponse<CreatedItem>
+
+  if (!response.ok || !responseData.ok) {
+    throw new Error(responseData.message || "Failed to create item")
+  }
+
+  return responseData.data!
+}
+
+export async function updateAdminItem(itemId: number, payload: CreateItemPayload & { description?: string }): Promise<CreatedItem> {
+  const response = await fetch(`${API_BASE_URL}/api/items/admin/items/${itemId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  })
+
+  const responseData = (await response.json()) as ApiResponse<CreatedItem>
+
+  if (!response.ok || !responseData.ok) {
+    throw new Error(responseData.message || "Failed to update item")
+  }
+
+  return responseData.data!
+}
+
+export async function deleteAdminItem(itemId: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/items/admin/items/${itemId}`, {
+    method: "DELETE",
+  })
+
+  const responseData = (await response.json()) as ApiResponse<null>
+
+  if (!response.ok || !responseData.ok) {
+    throw new Error(responseData.message || "Failed to delete item")
+  }
 }
 
 export async function fetchStockLevels(

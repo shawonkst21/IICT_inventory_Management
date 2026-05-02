@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
   Users,
+  ShoppingCart,
   ChevronLeft,
   ChevronDown,
   ChevronUp,
@@ -16,6 +17,7 @@ import {
   TooltipTrigger,
 } from "./ui/Tooltip"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import { useSidebar } from "@/context/SidebarContext"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,16 +39,23 @@ const mainItems = [
       { title: "Roles", url: "/admin/users/roles" },
     ],
   },
+  {
+    title: "Item Management",
+    url: "/admin/items",
+    icon: ShoppingCart,
+    subItems: [
+      { title: "Manage Items", url: "/admin/items" },
+      { title: "Categories", url: "/admin/categories" },
+    ],
+  },
   { title: "Log Viewer", url: "/admin/log-viewer", icon: LayoutDashboard },
   { title: "Tender", url: "/admin/tender", icon: LayoutDashboard },
-  { title: "Item Categories", url: "/admin/item-categories", icon: LayoutDashboard },
-  { title: "System settings", url: "/admin/system-settings", icon: LayoutDashboard },
 
 ]
 
 export default function AdminSidebar() {
   const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(false)
+  const { collapsed, setCollapsed } = useSidebar()
   const [openSub, setOpenSub] = useState<Record<string, boolean>>({})
 
   const toggle = (t: string) =>
@@ -58,6 +67,10 @@ export default function AdminSidebar() {
   const base = "flex items-center rounded-lg px-3 py-2 transition"
   const active = "bg-black text-white hover:bg-black"
   const normal = "text-black hover:bg-slate-100"
+  const labelMotion =
+    "overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-in-out"
+  const expandedLabel = "max-w-40 opacity-100 translate-x-0"
+  const collapsedLabel = "max-w-0 opacity-0 -translate-x-2"
 
   const subActive = "bg-slate-900 text-white border-l-2 border-white"
   const subNormal =
@@ -83,19 +96,26 @@ export default function AdminSidebar() {
         } ${itemActive ? active : normal}`}
       >
         <item.icon className="h-5 w-5 shrink-0" />
-        {!collapsed && (
-          <>
-            <span className="text-sm font-medium flex-1 text-left">
-              {item.title}
-            </span>
-            {hasSub &&
-              (openMenu ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              ))}
-          </>
-        )}
+        <span
+          className={`text-sm font-medium flex-1 text-left ${labelMotion} ${
+            collapsed ? collapsedLabel : expandedLabel
+          }`}
+        >
+          {item.title}
+        </span>
+        {hasSub ? (
+          <span
+            className={`ml-auto ${labelMotion} ${
+              collapsed ? collapsedLabel : expandedLabel
+            }`}
+          >
+            {openMenu ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </span>
+        ) : null}
       </button>
     )
 
@@ -138,7 +158,7 @@ export default function AdminSidebar() {
 
   return (
     <aside
-      className={`fixed left-0 top-0 bottom-0 border-r border-slate-200 bg-white transition-all duration-300 flex flex-col ${
+      className={`fixed left-0 top-0 bottom-0 z-20 shrink-0 border-r border-slate-200 bg-[#F7F6F3] flex flex-col transition-[width] duration-300 ease-in-out will-change-[width] ${
         collapsed ? "w-16" : "w-64"
       }`}
     >
@@ -171,7 +191,7 @@ export default function AdminSidebar() {
           {!collapsed && (
             <button
               onClick={() => setCollapsed(true)}
-              className="p-1.5 rounded-md hover:bg-slate-100"
+              className="p-1.5 rounded-md hover:bg-slate-100 transition-transform duration-300 ease-in-out"
             >
               <ChevronLeft className="h-4 w-4 text-black" />
             </button>
@@ -180,7 +200,7 @@ export default function AdminSidebar() {
           {collapsed && (
             <button
               onClick={() => setCollapsed(false)}
-              className="p-1.5 rounded-md hover:bg-slate-100"
+              className="p-1.5 rounded-md hover:bg-slate-100 transition-transform duration-300 ease-in-out"
             >
               <ChevronLeft className="h-4 w-4 text-black rotate-180" />
             </button>
@@ -203,7 +223,7 @@ export default function AdminSidebar() {
               }`}
             >
               <DropdownMenuTrigger>
-                <button className="w-full cursor-pointer hover:opacity-80 transition">
+                <button className="w-full cursor-pointer hover:opacity-80 transition-opacity duration-300 ease-in-out">
                   <div
                     className={`flex ${
                       collapsed
@@ -216,16 +236,20 @@ export default function AdminSidebar() {
                       <AvatarFallback>AD</AvatarFallback>
                     </Avatar>
 
-                    {!collapsed && (
-                      <div className="min-w-0 text-left">
-                        <p className="truncate text-sm font-semibold text-slate-800">
-                          Admin User
-                        </p>
-                        <p className="truncate text-xs text-slate-500">
-                          Administrator
-                        </p>
-                      </div>
-                    )}
+                    <div
+                      className={`overflow-hidden min-w-0 text-left transition-[max-width,opacity,transform] duration-300 ease-in-out ${
+                        collapsed
+                          ? "max-w-0 opacity-0 -translate-x-2"
+                          : "max-w-40 opacity-100 translate-x-0"
+                      }`}
+                    >
+                      <p className="truncate text-sm font-semibold text-slate-800 whitespace-nowrap">
+                        Admin User
+                      </p>
+                      <p className="truncate text-xs text-slate-500 whitespace-nowrap">
+                        Administrator
+                      </p>
+                    </div>
                   </div>
                 </button>
               </DropdownMenuTrigger>
