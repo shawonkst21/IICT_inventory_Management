@@ -1,9 +1,15 @@
 "use client"
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { FormEvent, useEffect, useMemo, useState, useRef } from "react"
-import { Package, AlertCircle, CheckCircle, Loader2, ChevronDown } from "lucide-react"
+import {
+  Package,
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  ChevronDown,
+  Search,
+} from "lucide-react"
+import { toast } from "sonner"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,7 +21,6 @@ import {
 import { fetchItemOptions, submitItemRequest, type ItemOption } from "../../../lib/api"
 
 export default function ItemRequestsPage() {
-  const router = useRouter()
   const [items, setItems] = useState<ItemOption[]>([])
   const [loadingItems, setLoadingItems] = useState(true)
   const [fetchError, setFetchError] = useState("")
@@ -38,7 +43,6 @@ export default function ItemRequestsPage() {
     const loadItems = async () => {
       setLoadingItems(true)
       setFetchError("")
-
       try {
         const itemList = await fetchItemOptions()
         setItems(itemList)
@@ -48,22 +52,17 @@ export default function ItemRequestsPage() {
         setLoadingItems(false)
       }
     }
-
     void loadItems()
   }, [])
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false)
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
+    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
   const handleItemSelect = (item: ItemOption) => {
@@ -74,13 +73,21 @@ export default function ItemRequestsPage() {
 
   const filteredItems = useMemo(() => {
     const query = itemSearch.trim().toLowerCase()
-
-    if (!query) {
-      return items
-    }
-
+    if (!query) return items
     return items.filter((item) => item.name.toLowerCase().includes(query))
   }, [itemSearch, items])
+
+  const handleClear = () => {
+    setItemSearch("")
+    setSelectedItemId(null)
+    setDropdownOpen(false)
+    setQuantity("")
+    setDepartment("")
+    setPurpose("")
+    setRoomNo("")
+    setSubmitMessage("")
+    setSubmitError("")
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -111,266 +118,243 @@ export default function ItemRequestsPage() {
       recipientRoom: roomNo.trim(),
     }
 
-    console.log("Item request form submitted:", requestPayload)
-
     setSubmitting(true)
-
     try {
       await submitItemRequest(requestPayload)
-
       setSubmitMessage("Item request submitted successfully")
+      toast("Item request submitted", { description: "Your request was submitted successfully." })
       setQuantity("")
       setDepartment("")
       setPurpose("")
       setRoomNo("")
       setSelectedItemId(null)
       setItemSearch("")
-      router.push("/lab_Assistant/item-requests/history?submitted=1")
+      // removed redirect to history page to avoid shifting context
     } catch (error) {
-      setSubmitError((error as Error).message || "Failed to submit request")
+      const msg = (error as Error).message || "Failed to submit request"
+      setSubmitError(msg)
+      toast(msg)
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <div className="w-full bg-linear-to-br from-slate-50 to-slate-100 p-8">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Home</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/lab_Assistant">Staff Dashboard</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Item Requests</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+    <div className="min-h-screen w-full bg-[#F7F6F3] px-8 py-8 font-['DM_Sans',sans-serif]">
+      
+      {/* Top bar */}
+      <div className="flex items-center justify-between mb-6">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/">Home</BreadcrumbLink>
+            </BreadcrumbItem>
+            {/* <BreadcrumbSeparator className="text-[#C8C5BF]" /> */}
+            {/* <BreadcrumbItem>
+              <BreadcrumbLink href="/lab_Assistant" className="hover:text-[#1A1916] transition-colors">Dashboard</BreadcrumbLink>
+            </BreadcrumbItem> */}
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Item Requests</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
 
-      <div className="mt-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Package className="w-8 h-8 text-black" />
-          <h1 className="text-3xl font-bold text-black">Item Request Form</h1>
+      {/* Page Header */}
+      <div className="mb-8">
+        <div className="inline-flex items-center gap-2 rounded-full bg-[#ECEAE5] px-3 py-1 mb-4">
+          <Package className="w-3.5 h-3.5 text-[#5A5650]" />
+          <span className="text-xs font-medium text-[#5A5650] tracking-wide uppercase">Inventory</span>
         </div>
-        <p className="text-black text-opacity-70 text-sm mb-8">
-          Submit a request to obtain items from inventory for your department.
+        <h1 className="text-4xl font-semibold tracking-tight text-[#1A1916] leading-none mb-2">
+          Item Request
+        </h1>
+        <p className="text-sm text-[#9A9690] max-w-md">
+          Request items from inventory for your department. Your admin team will review and respond.
         </p>
-        <div className="mb-6 flex justify-end">
-          <Link
-            href="/lab_Assistant/item-requests/history"
-            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-black shadow-sm transition hover:bg-slate-50"
-          >
-            View Request History
-          </Link>
-        </div>
+      </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-          <form className="space-y-8" onSubmit={handleSubmit}>
-            {/* Item Selection Section */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-black flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold">1</span>
-                Select Item
-              </h2>
+      {/* Form Card */}
+      <div className="bg-white rounded-2xl border border-[#E8E5DF] shadow-sm overflow-hidden">
 
-              {/* Searchable Dropdown - Combined Search and Dropdown */}
-              <div ref={dropdownRef} className="space-y-3">
-                <label className="block text-sm font-semibold text-black">
-                  Search & Select Item <span className="text-red-600">*</span>
+        <form className="p-6 space-y-8" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="rounded-xl border border-[#ECE8E1] bg-[#FCFCFA] p-5 space-y-5">
+              <div>
+                <p className="text-xs text-[#9A9690] mt-1">Select item and provide request quantity with room number.</p>
+              </div>
+
+              <div ref={dropdownRef} className="relative space-y-2">
+                <label className="block text-xs font-medium text-[#9A9690] uppercase tracking-wider">
+                  Select Item <span className="text-rose-400">*</span>
                 </label>
                 <div className="relative">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={itemSearch}
-                      onChange={(event) => {
-                        setItemSearch(event.target.value)
-                        setDropdownOpen(true)
-                        setSelectedItemId(null)
-                      }}
-                      onFocus={() => setDropdownOpen(true)}
-                      placeholder={
-                        loadingItems
-                          ? "Loading items..."
-                          : "Search and select item..."
-                      }
-                      className="w-full rounded-lg border-2 border-slate-200 px-4 py-3 pr-10 text-black placeholder-slate-500 outline-none focus:border-black focus:ring-2 focus:ring-black focus:ring-opacity-10 transition"
-                      disabled={loadingItems}
-                    />
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-500 pointer-events-none" />
-                  </div>
-
-                  {/* Dropdown Menu */}
-                  {dropdownOpen && !loadingItems && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-slate-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
-                      {filteredItems.length > 0 ? (
-                        filteredItems.map((item) => (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => handleItemSelect(item)}
-                            className={`w-full text-left px-4 py-3 hover:bg-slate-100 transition border-b border-slate-100 last:border-b-0 ${
-                              selectedItemId === item.id
-                                ? "bg-black text-white hover:bg-slate-900"
-                                : "text-black"
-                            }`}
-                          >
-                            <div className="font-medium">{item.name}</div>
-                            <div className={`text-xs ${
-                              selectedItemId === item.id
-                                ? "text-slate-300"
-                                : "text-slate-500"
-                            }`}>
-                              ID: {item.id}
-                            </div>
-                          </button>
-                        ))
-                      ) : (
-                        <div className="px-4 py-6 text-center text-slate-500 text-sm">
-                          No items found
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {selectedItemId ? (
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-blue-600" />
-                    <p className="text-sm text-black font-medium">
-                      ✓ {itemSearch} (ID: {selectedItemId})
-                    </p>
-                  </div>
-                ) : null}
-                {fetchError ? (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                    <p className="text-sm text-red-700">{fetchError}</p>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            {/* Request Details Section */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-black flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold">2</span>
-                Request Details
-              </h2>
-
-              {/* 2-Column Grid */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-black mb-2">
-                    Quantity <span className="text-red-600">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    step={1}
-                    value={quantity}
-                    onChange={(event) => setQuantity(event.target.value)}
-                    placeholder="Enter quantity"
-                    className="w-full rounded-lg border-2 border-slate-200 px-4 py-3 text-black placeholder-slate-500 outline-none focus:border-black focus:ring-2 focus:ring-black focus:ring-opacity-10 transition"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-black mb-2">
-                    Department <span className="text-red-600">*</span>
-                  </label>
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#C8C5BF] pointer-events-none" />
                   <input
                     type="text"
-                    value={department}
-                    onChange={(event) => setDepartment(event.target.value)}
-                    placeholder="e.g. Laboratory"
-                    className="w-full rounded-lg border-2 border-slate-200 px-4 py-3 text-black placeholder-slate-500 outline-none focus:border-black focus:ring-2 focus:ring-black focus:ring-opacity-10 transition"
-                    required
+                    value={itemSearch}
+                    onChange={(e) => {
+                      setItemSearch(e.target.value)
+                      setDropdownOpen(true)
+                      setSelectedItemId(null)
+                    }}
+                    onFocus={() => setDropdownOpen(true)}
+                    placeholder={loadingItems ? "Loading items..." : "Search items..."}
+                    disabled={loadingItems}
+                    className="w-full rounded-xl border border-[#E2DFD9] bg-white pl-11 pr-10 py-3 text-sm text-[#1A1916] placeholder-[#C8C5BF] outline-none focus:border-[#1A1916] focus:ring-2 focus:ring-[#1A1916]/8 transition-all duration-200 disabled:opacity-50"
+                  />
+                  <ChevronDown
+                    className={`absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9A9690] pointer-events-none transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-black mb-2">
-                    Room No <span className="text-red-600">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={roomNo}
-                    onChange={(event) => setRoomNo(event.target.value)}
-                    placeholder="e.g. Lab 1"
-                    className="w-full rounded-lg border-2 border-slate-200 px-4 py-3 text-black placeholder-slate-500 outline-none focus:border-black focus:ring-2 focus:ring-black focus:ring-opacity-10 transition"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-black mb-2">
-                    Purpose <span className="text-red-600">*</span>
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={purpose}
-                    onChange={(event) => setPurpose(event.target.value)}
-                    placeholder="Why do you need this item?"
-                    className="w-full rounded-lg border-2 border-slate-200 px-4 py-3 text-black placeholder-slate-500 outline-none focus:border-black focus:ring-2 focus:ring-black focus:ring-opacity-10 transition resize-none"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Messages */}
-            {submitError ? (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700">{submitError}</p>
-              </div>
-            ) : null}
-            {submitMessage ? (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                <p className="text-sm text-emerald-700">{submitMessage}</p>
-              </div>
-            ) : null}
-
-            {/* Submit Button */}
-            <div className="flex gap-4 pt-6 border-t border-slate-200">
-              <button
-                type="submit"
-                disabled={submitting || loadingItems}
-                className="flex-1 rounded-lg bg-black text-white font-semibold py-3 hover:bg-slate-900 disabled:opacity-60 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit Request"
+                {dropdownOpen && !loadingItems && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-[#E2DFD9] rounded-xl shadow-lg z-50 max-h-56 overflow-y-auto">
+                    {filteredItems.length > 0 ? (
+                      filteredItems.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleItemSelect(item)}
+                          className={`w-full flex items-center justify-between px-4 py-3 transition-colors border-b border-[#F0EDE8] last:border-b-0 ${
+                            selectedItemId === item.id
+                              ? "bg-[#1A1916] text-white"
+                              : "text-[#1A1916] hover:bg-[#F7F6F3]"
+                          }`}
+                        >
+                          <span className="text-sm font-medium truncate">{item.name}</span>
+                        
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-4 py-8 text-center text-sm text-[#9A9690]">No items found</div>
+                    )}
+                  </div>
                 )}
-              </button>
-              <button
-                type="reset"
-                disabled={submitting}
-                className="px-6 rounded-lg bg-slate-200 text-black font-semibold py-3 hover:bg-slate-300 disabled:opacity-60 transition"
-              >
-                Clear
-              </button>
-            </div>
-          </form>
-        </div>
+              </div>
 
-        {/* Info Box */}
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-black">
-            <span className="font-semibold">Note:</span> Submit your item request with required details. The admin team will review and approve/reject your request.
-          </p>
-        </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-medium uppercase tracking-wider text-[#9A9690]">
+                  Quantity <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  placeholder="e.g. 5"
+                  required
+                  className="w-full rounded-xl border border-[#E2DFD9] bg-white px-4 py-3 text-sm text-[#1A1916] placeholder-[#C8C5BF] outline-none focus:border-[#1A1916] focus:ring-2 focus:ring-[#1A1916]/8 transition-all duration-200"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-medium uppercase tracking-wider text-[#9A9690]">
+                  Room No <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={roomNo}
+                  onChange={(e) => setRoomNo(e.target.value)}
+                  placeholder="e.g. Lab 1"
+                  required
+                  className="w-full rounded-xl border border-[#E2DFD9] bg-white px-4 py-3 text-sm text-[#1A1916] placeholder-[#C8C5BF] outline-none focus:border-[#1A1916] focus:ring-2 focus:ring-[#1A1916]/8 transition-all duration-200"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-[#ECE8E1] bg-[#FCFCFA] p-5 space-y-5">
+              <div>
+                <p className="text-xs text-[#9A9690] mt-1">Provide department and a clear description for approval.</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-medium uppercase tracking-wider text-[#9A9690]">
+                  Department <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  placeholder="e.g. Laboratory"
+                  required
+                  className="w-full rounded-xl border border-[#E2DFD9] bg-white px-4 py-3 text-sm text-[#1A1916] placeholder-[#C8C5BF] outline-none focus:border-[#1A1916] focus:ring-2 focus:ring-[#1A1916]/8 transition-all duration-200"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-medium uppercase tracking-wider text-[#9A9690]">
+                  Description <span className="text-rose-400">*</span>
+                </label>
+                <textarea
+                  rows={6}
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                  placeholder="Why do you need this item? Mention usage details."
+                  required
+                  className="w-full resize-none rounded-xl border border-[#E2DFD9] bg-white px-4 py-3 text-sm text-[#1A1916] placeholder-[#C8C5BF] outline-none focus:border-[#1A1916] focus:ring-2 focus:ring-[#1A1916]/8 transition-all duration-200"
+                />
+              </div>
+            </div>
+          </div>
+
+          {fetchError && (
+            <div className="flex items-start gap-2.5 rounded-xl bg-rose-50 border border-rose-200 px-4 py-3">
+              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-rose-700">{fetchError}</p>
+            </div>
+          )}
+
+          {/* ── Feedback Messages ── */}
+          {submitError && (
+            <div className="flex items-start gap-2.5 rounded-xl bg-rose-50 border border-rose-200 px-4 py-3">
+              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-rose-700">{submitError}</p>
+            </div>
+          )}
+         
+
+          {/* ── Actions ── */}
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-[#E8E5DF]">
+            <button
+              type="submit"
+              disabled={submitting || loadingItems}
+              className="group inline-flex items-center justify-center gap-2 rounded-md bg-[#1A1916] px-4 py-2 text-sm 
+              font-semibold text-white hover:bg-[#2D2B27] disabled:opacity-50
+               disabled:cursor-not-allowed transition-all duration-200"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Submitting…
+                </>
+              ) : (
+                <>
+                  Submit Request
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleClear}
+              disabled={submitting}
+              className="px-4 py-2 rounded-md border border-[#E2DFD9] bg-[#FAFAF8] text-sm font-medium text-[#5A5650] hover:border-[#1A1916] hover:text-[#1A1916] disabled:opacity-50 transition-all duration-200"
+            >
+              Clear
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Note */}
+      <div className="mt-4 flex items-start gap-2.5 px-1">
+        <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#C8C5BF]" />
+        <p className="text-xs text-[#9A9690] leading-relaxed">
+          Requests are reviewed by the admin team. You will be notified once a decision is made.
+        </p>
       </div>
     </div>
   )

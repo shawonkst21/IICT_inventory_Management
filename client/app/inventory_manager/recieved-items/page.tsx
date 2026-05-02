@@ -20,7 +20,9 @@ import {
   type ItemOption,
   type ItemReceiptRecord,
 } from "@/lib/api"
+import DatePicker from "@/components/DatePicker"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 
 type QualityStatus = "good" | "partial" | "damaged" | "rejected"
 type BillStatus = "paid" | "pending" | "unpaid"
@@ -491,13 +493,10 @@ export default function ReceivedItemsPage() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-black">Receipt Date</label>
-            <input
-              type="date"
-              value={receiptDate}
-              onChange={(e) => setReceiptDate(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-slate-500"
-              required
-            />
+            <div>
+              {/* Controlled DatePicker outputs YYYY-MM-DD string to match existing form state */}
+              <DatePicker value={receiptDate} onChange={(v) => setReceiptDate(v)} placeholder="Pick receipt date" />
+            </div>
           </div>
         </div>
 
@@ -522,104 +521,110 @@ export default function ReceivedItemsPage() {
         </div>
       </form>
 
-      {showCreateItem && (
-        <form onSubmit={handleCreateItem} className="rounded-lg border border-slate-200 bg-white p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-black">Create New Item</h2>
-          <p className="text-sm text-black">If item name is not listed for the selected category, create it here.</p>
+      <Sheet open={showCreateItem} onOpenChange={setShowCreateItem}>
+        <SheetContent className="overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Create New Item</SheetTitle>
+            <SheetDescription>
+              If item name is not listed for the selected category, create it here.
+            </SheetDescription>
+          </SheetHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-black">Category</label>
-              <input
-                type="text"
-                value={
-                  selectedCategory
-                    ? categories.find((cat) => cat.id === selectedCategory)?.name || ""
-                    : "Select category first"
-                }
-                readOnly
-                className="w-full rounded-md border border-slate-300 bg-slate-100 px-3 py-2 text-black"
-              />
+          <form onSubmit={handleCreateItem} className="space-y-4 p-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-black">Category</label>
+                <input
+                  type="text"
+                  value={
+                    selectedCategory
+                      ? categories.find((cat) => cat.id === selectedCategory)?.name || ""
+                      : "Select category first"
+                  }
+                  readOnly
+                  className="w-full rounded-md border border-slate-300 bg-slate-100 px-3 py-2 text-black"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-black">New Product Name</label>
+                <input
+                  type="text"
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-black">Unit</label>
+                <input
+                  type="text"
+                  value={newItemUnit}
+                  onChange={(e) => setNewItemUnit(e.target.value)}
+                  placeholder="pcs / box / kg"
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-black">Current Stock</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={newItemCurrentStock}
+                  onChange={(e) => setNewItemCurrentStock(e.target.value)}
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-black">Low Stock Threshold</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={newItemLowThreshold}
+                  onChange={(e) => setNewItemLowThreshold(e.target.value)}
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-black">Description</label>
+                <textarea
+                  value={newItemDescription}
+                  onChange={(e) => setNewItemDescription(e.target.value)}
+                  rows={4}
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-slate-500"
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-black">New Product Name</label>
-              <input
-                type="text"
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-slate-500"
-                required
-              />
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={submittingNewItem || !selectedCategory}
+                className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+              >
+                {submittingNewItem ? "Creating..." : "Create Item"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCreateItem(false)}
+                className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-black hover:bg-slate-100"
+              >
+                Cancel
+              </button>
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-black">Unit</label>
-              <input
-                type="text"
-                value={newItemUnit}
-                onChange={(e) => setNewItemUnit(e.target.value)}
-                placeholder="pcs / box / kg"
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-slate-500"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-black">Current Stock</label>
-              <input
-                type="number"
-                min={0}
-                step={1}
-                value={newItemCurrentStock}
-                onChange={(e) => setNewItemCurrentStock(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-slate-500"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-black">Low Stock Threshold</label>
-              <input
-                type="number"
-                min={0}
-                step={1}
-                value={newItemLowThreshold}
-                onChange={(e) => setNewItemLowThreshold(e.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-slate-500"
-                required
-              />
-            </div>
-
-            <div className="space-y-2 md:col-span-2 lg:col-span-3">
-              <label className="text-sm font-medium text-black">Description</label>
-              <textarea
-                value={newItemDescription}
-                onChange={(e) => setNewItemDescription(e.target.value)}
-                rows={3}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-slate-500"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={submittingNewItem || !selectedCategory}
-              className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
-            >
-              {submittingNewItem ? "Creating..." : "Create Item"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowCreateItem(false)}
-              className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-black hover:bg-slate-100"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
+          </form>
+        </SheetContent>
+      </Sheet>
 
       <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
         <div className="border-b border-slate-200 p-4">

@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Bell,
   FileText,
@@ -10,15 +10,11 @@ import {
   ChevronLeft,
   ChevronDown,
   ChevronUp,
-} from "lucide-react"
-import { useLayoutEffect, useState } from "react"
-import type { LucideIcon } from "lucide-react"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "./ui/Tooltip"
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+} from "lucide-react";
+import { useLayoutEffect, useState } from "react";
+import type { LucideIcon } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/Tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,58 +23,65 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu"
+} from "./ui/dropdown-menu";
 
 interface MenuItem {
-  title: string
-  url: string
-  icon: LucideIcon
-  subItems?: MenuItem[]
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  subItems?: MenuItem[];
 }
 
 const mainItems: MenuItem[] = [
-  { title: "My Requests", url: "/lab_Assistant/my-requests", icon: FileText },
-  { title: "Item Requests", url: "/lab_Assistant/item-requests", icon: Package },
-  { title: "Request History", url: "/lab_Assistant/item-requests/history", icon: History },
-  { title: "Notifications", url: "/lab_Assistant/notifications", icon: Bell },
-]
+  // { title: "My Requests", url: "/lab_Assistant/my-requests", icon: FileText },
+  {
+    title: "Item Requests",
+    url: "/lab_Assistant/item-requests",
+    icon: Package,
+  },
+  {
+    title: "Request History",
+    url: "/lab_Assistant/item-requests/history",
+    icon: History,
+  },
+  // { title: "Notifications", url: "/lab_Assistant/notifications", icon: Bell },
+];
 
 export default function StafSidebar() {
-  const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(false)
-  const [openSub, setOpenSub] = useState<Record<string, boolean>>({})
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
+  const [openSub, setOpenSub] = useState<Record<string, boolean>>({});
 
   useLayoutEffect(() => {
     document.documentElement.style.setProperty(
       "--staff-sidebar-width",
       collapsed ? "4rem" : "16rem",
-    )
-  }, [collapsed])
+    );
+  }, [collapsed]);
 
-  const toggle = (t: string) =>
-    setOpenSub((p) => ({ ...p, [t]: !p[t] }))
+  const toggle = (t: string) => setOpenSub((p) => ({ ...p, [t]: !p[t] }));
 
-  const isActive = (url: string) => pathname === url
+  const isActive = (url: string) => pathname === url;
 
-  const base = "flex items-center rounded-lg px-3 py-2 transition"
-  const active = "bg-black text-white"
-  const normal = "text-black hover:bg-slate-100"
+  const base = "flex items-center rounded-lg px-3 py-2 transition";
+  const active = "bg-[#1A1916] text-white";
+  const normal = "text-black hover:bg-slate-100";
   const labelMotion =
-    "overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-in-out"
-  const expandedLabel = "max-w-40 opacity-100 translate-x-0"
-  const collapsedLabel = "max-w-0 opacity-0 -translate-x-2"
+    "overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-300 ease-in-out";
+  const expandedLabel = "max-w-40 opacity-100 translate-x-0";
+  const collapsedLabel = "max-w-0 opacity-0 -translate-x-2";
 
   const renderItem = (item: MenuItem) => {
-    const hasSub = item.subItems?.length
-    const itemActive = isActive(item.url)
-    const subActive = item.subItems?.some((s) => pathname === s.url)
-    const openMenu = openSub[item.title] || subActive
+    const hasSub = item.subItems?.length;
+    const itemActive = isActive(item.url);
+    const subActive = item.subItems?.some((s) => pathname === s.url);
+    const openMenu = openSub[item.title] || subActive;
 
     const button = (
       <button
         onClick={() => {
-          if (hasSub) toggle(item.title)
-          else window.location.href = item.url
+          if (hasSub) toggle(item.title);
+          else window.location.href = item.url;
         }}
         className={`w-full ${base} ${
           collapsed ? "justify-center" : "gap-3"
@@ -106,7 +109,7 @@ export default function StafSidebar() {
           </span>
         ) : null}
       </button>
-    )
+    );
 
     return (
       <div key={item.title}>
@@ -122,29 +125,27 @@ export default function StafSidebar() {
         {!collapsed && hasSub && openMenu && (
           <div className="ml-7 mt-1 space-y-1 border-l border-slate-300 pl-3">
             {item.subItems?.map((sub) => {
-              const subIsActive = pathname === sub.url
+              const subIsActive = pathname === sub.url;
 
               return (
                 <Link
                   key={sub.title}
                   href={sub.url}
-                  className={`block ${base} ${
-                    subIsActive ? active : normal
-                  }`}
+                  className={`block ${base} ${subIsActive ? active : normal}`}
                 >
                   <span className="text-sm">{sub.title}</span>
                 </Link>
-              )
+              );
             })}
           </div>
         )}
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <aside
-      className={`fixed left-0 top-0 bottom-0 z-20 shrink-0 border-r border-slate-200 bg-white flex flex-col transition-[width] duration-300 ease-in-out will-change-[width] ${
+      className={`fixed left-0 top-0 bottom-0 z-20 shrink-0 border-r border-slate-200 bg-[#F7F6F3] flex flex-col transition-[width] duration-300 ease-in-out will-change-[width] ${
         collapsed ? "w-16" : "w-64"
       }`}
     >
@@ -157,9 +158,7 @@ export default function StafSidebar() {
         >
           <button
             onClick={() => setCollapsed(false)}
-            className={`flex items-center ${
-              collapsed ? "hidden" : "gap-3"
-            }`}
+            className={`flex items-center ${collapsed ? "hidden" : "gap-3"}`}
           >
             <div className="h-9 w-9 rounded-lg bg-black text-white flex items-center justify-center text-sm font-bold">
               ST
@@ -184,7 +183,7 @@ export default function StafSidebar() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-2 overflow-y-auto">
+      <div className="flex-1 px-2  overflow-y-auto ">
         <div className="space-y-1">{mainItems.map(renderItem)}</div>
       </div>
 
@@ -227,19 +226,18 @@ export default function StafSidebar() {
 
           <DropdownMenuContent align="start" className="w-48" positionAbove>
             <DropdownMenuGroup>
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => window.location.href = "#profile"}>
+              <DropdownMenuLabel className="text-black">
+                My Account
+              </DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => (window.location.href = "#profile")}
+              >
                 Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => window.location.href = "/staf/settings"}>
-                Settings
               </DropdownMenuItem>
             </DropdownMenuGroup>
 
-            <DropdownMenuSeparator />
-
             <DropdownMenuItem
-              onClick={() => window.location.href = "/"}
+              onClick={() => (window.location.href = "/")}
               className="text-red-600!"
             >
               Logout
@@ -248,5 +246,5 @@ export default function StafSidebar() {
         </DropdownMenu>
       </div>
     </aside>
-  )
+  );
 }
