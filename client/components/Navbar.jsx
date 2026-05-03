@@ -22,8 +22,8 @@ export default function Navbar() {
 
     return (
         <nav className={`flex items-center justify-between fixed z-50 top-0 w-full px-6 md:px-16 lg:px-24 xl:px-32 py-4 ${openMobileMenu ? '' : 'backdrop-blur'}`}>
-            <a href="https://prebuiltui.com?utm_source=landing">
-                <Image className="h-9 md:h-9.5 w-auto shrink-0" src={isDark ? "/assets/logo-light.svg" : "/assets/logo-dark.svg"} alt="Logo" width={140} height={40} priority fetchPriority="high" />
+            <a href="/">
+                <Image className="h-9 md:h-9.5 w-auto shrink-0" src={isDark ? "/assets/iict_darkmode.png" : "/assets/iict.png"} alt="IICT Logo" width={140} height={40} priority fetchPriority="high" />
             </a>
             {/* <div className="hidden items-center md:gap-8 lg:gap-9 md:flex lg:pl-20">
                 {navLinks.map((link) => (
