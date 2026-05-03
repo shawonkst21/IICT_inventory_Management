@@ -38,7 +38,6 @@ const mainItems = [
     icon: Users,
     subItems: [
       { title: "Manage Users", url: "/admin/users" },
-      { title: "Roles", url: "/admin/users/roles" },
     ],
   },
   {

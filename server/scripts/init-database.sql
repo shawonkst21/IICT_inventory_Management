@@ -131,20 +131,18 @@ CREATE INDEX IF NOT EXISTS idx_item_issuances_issued_date ON item_issuances(issu
 -- ============================================
 CREATE TABLE IF NOT EXISTS tender_notices (
   id SERIAL PRIMARY KEY,
-  created_by INTEGER REFERENCES users(id) NOT NULL,
+  created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
   title VARCHAR(255) NOT NULL,
-  rfq_number VARCHAR(100),
-  description TEXT,
-  submission_deadline DATE,
-  status VARCHAR(50) CHECK (status IN ('draft', 'published', 'closed', 'awarded')) NOT NULL DEFAULT 'draft',
-  published_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  summary TEXT,
+  file_path TEXT NOT NULL,
+  file_type VARCHAR(50) NOT NULL,
+  deadline DATE NOT NULL,
+  status VARCHAR(20) CHECK (status IN ('draft', 'published', 'expired', 'archived')) NOT NULL DEFAULT 'draft'
 );
 
 CREATE INDEX IF NOT EXISTS idx_tender_notices_created_by ON tender_notices(created_by);
 CREATE INDEX IF NOT EXISTS idx_tender_notices_status ON tender_notices(status);
-CREATE INDEX IF NOT EXISTS idx_tender_notices_submission_deadline ON tender_notices(submission_deadline);
+CREATE INDEX IF NOT EXISTS idx_tender_notices_deadline ON tender_notices(deadline);
 
 -- ============================================
 -- Table 8: notifications
@@ -202,10 +200,6 @@ CREATE TRIGGER update_item_categories_updated_at BEFORE UPDATE ON item_categorie
 
 DROP TRIGGER IF EXISTS update_items_updated_at ON items;
 CREATE TRIGGER update_items_updated_at BEFORE UPDATE ON items
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-DROP TRIGGER IF EXISTS update_tender_notices_updated_at ON tender_notices;
-CREATE TRIGGER update_tender_notices_updated_at BEFORE UPDATE ON tender_notices
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================

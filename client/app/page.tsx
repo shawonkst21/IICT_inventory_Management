@@ -1,19 +1,20 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
-import SectionTitle from "@/components/SectionTitle";
 import TiltedImage from "@/components/TiltImage";
 import { useThemeContext } from "@/context/ThemeContext";
-import { featuresData } from "@/data/featuresData";
-import { FaqSection } from "@/sections/FaqSection";
-import Pricing from "@/sections/Pricing";
-import { VideoIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, FileImage, FileText, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Marquee from "react-fast-marquee";
 import Footer from "@/components/Footer";
+import { fetchPublishedTenderNotices, getFileUrl, type TenderNotice } from "@/lib/api";
 
 export default function HomePage() {
   const { theme } = useThemeContext();
+  const [tenders, setTenders] = useState<TenderNotice[]>([]);
+  const [loadingTenders, setLoadingTenders] = useState(true);
+  const [activeTenderIndex, setActiveTenderIndex] = useState(0);
   const inventoryModules = [
     "Stock Tracking",
     "Purchase Orders",
@@ -22,6 +23,44 @@ export default function HomePage() {
     "Batch & Expiry",
     "Low-Stock Alerts",
   ];
+
+  useEffect(() => {
+    const loadTenders = async () => {
+      try {
+        const notices = await fetchPublishedTenderNotices();
+        setTenders(notices.slice(0, 3));
+      } catch (error) {
+        console.error("Failed to load tender notices:", error);
+      } finally {
+        setLoadingTenders(false);
+      }
+    };
+
+    void loadTenders();
+  }, []);
+
+  useEffect(() => {
+    if (activeTenderIndex >= tenders.length && tenders.length > 0) {
+      setActiveTenderIndex(0);
+    }
+  }, [activeTenderIndex, tenders]);
+
+  const isImageFile = (fileType: string) => fileType.startsWith("image/");
+
+  const formatDeadline = (value: string) =>
+    new Intl.DateTimeFormat("en-BD", { dateStyle: "medium" }).format(new Date(value));
+
+  const activeTender = tenders[activeTenderIndex] || null;
+
+  const showPreviousTender = () => {
+    if (tenders.length === 0) return;
+    setActiveTenderIndex((current) => (current === 0 ? tenders.length - 1 : current - 1));
+  };
+
+  const showNextTender = () => {
+    if (tenders.length === 0) return;
+    setActiveTenderIndex((current) => (current === tenders.length - 1 ? 0 : current + 1));
+  };
 
   return (
     <>
@@ -94,6 +133,127 @@ export default function HomePage() {
         </Marquee>
       </div>
       <TiltedImage />
+      <section className="mx-auto mt-24 w-full max-w-6xl px-6 lg:px-8">
+        <div className="rounded-[32px] border border-slate-200 bg-[linear-gradient(135deg,#fffdf7_0%,#f8f4ec_100%)] p-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-sm font-medium uppercase tracking-[0.22em] text-slate-500">Public notices</p>
+              <h2 className="mt-2 text-3xl font-semibold text-slate-950">Tender notices</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+                Latest published tender announcements from IICT. Open the attached PDF or image notice directly.
+              </p>
+            </div>
+          </div>
+
+          {loadingTenders ? (
+            <div className="mt-8 flex items-center justify-center rounded-3xl border border-slate-200 bg-white px-6 py-12 text-slate-600">
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Loading tender notices...
+            </div>
+          ) : tenders.length === 0 ? (
+            <div className="mt-8 rounded-3xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center text-slate-500">
+              No published tender notices are available right now.
+            </div>
+          ) : (
+            <div className="mt-8">
+              {activeTender ? (
+                <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                  <div className="flex flex-col">
+                    <div className="relative">
+                      {isImageFile(activeTender.file_type) ? (
+                        <div className="relative h-[360px] w-full bg-slate-100 sm:h-[460px] lg:h-[560px]">
+                          <Image
+                            src={getFileUrl(activeTender.file_path)}
+                            alt={activeTender.title}
+                            fill
+                            className="object-contain bg-slate-100"
+                            unoptimized
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex h-[360px] items-center justify-center bg-[linear-gradient(135deg,#111827_0%,#334155_100%)] text-white sm:h-[460px] lg:h-[560px]">
+                          <div className="text-center">
+                            <FileText className="mx-auto h-20 w-20" />
+                            <p className="mt-5 text-sm uppercase tracking-[0.2em] text-slate-300">PDF Notice Preview</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-6 lg:p-8">
+                      <div className="space-y-6">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                            <CalendarDays className="h-4 w-4" />
+                            Deadline {formatDeadline(activeTender.deadline)}
+                          </div>
+                          <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                            {activeTenderIndex + 1} / {tenders.length}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="text-2xl font-semibold text-slate-950">{activeTender.title}</h3>
+                          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
+                            {activeTender.summary || "Official notice published by the administration."}
+                          </p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={showPreviousTender}
+                              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                              aria-label="Previous tender notice"
+                            >
+                              <ArrowLeft className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={showNextTender}
+                              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                              aria-label="Next tender notice"
+                            >
+                              <ArrowRight className="h-4 w-4" />
+                            </button>
+                          </div>
+
+                          <Link
+                            href={getFileUrl(activeTender.file_path)}
+                            target="_blank"
+                            className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                          >
+                            {isImageFile(activeTender.file_type) ? <FileImage className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+                            Open notice
+                          </Link>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          {tenders.map((tender, index) => (
+                            <button
+                              key={tender.id}
+                              type="button"
+                              onClick={() => setActiveTenderIndex(index)}
+                              className={`h-2.5 rounded-full transition ${
+                                index === activeTenderIndex
+                                  ? "w-10 bg-slate-900"
+                                  : "w-2.5 bg-slate-300 hover:bg-slate-400"
+                              }`}
+                              aria-label={`Show tender notice ${index + 1}`}
+                            >
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+      </section>
       {/* <SectionTitle
         text1="FEATURES"
         text2="Built for builders"

@@ -59,10 +59,62 @@ CREATE TRIGGER update_item_issuances_updated_at BEFORE UPDATE ON item_issuances
 -- ============================================
 -- 5. Update tender_notices table
 -- ============================================
-ALTER TABLE tender_notices ADD UNIQUE (rfq_number);
+DROP TRIGGER IF EXISTS update_tender_notices_updated_at ON tender_notices;
 
--- Update column types
-ALTER TABLE tender_notices ALTER COLUMN rfq_number TYPE VARCHAR(100);
+DROP INDEX IF EXISTS idx_tender_notices_rfq_number;
+DROP INDEX IF EXISTS idx_tender_notices_published_at;
+DROP INDEX IF EXISTS idx_tender_notices_submission_deadline;
+
+ALTER TABLE tender_notices DROP CONSTRAINT IF EXISTS tender_notices_rfq_number_key;
+ALTER TABLE tender_notices DROP CONSTRAINT IF EXISTS tender_notices_status_check;
+
+ALTER TABLE tender_notices
+  ADD COLUMN IF NOT EXISTS summary TEXT;
+
+ALTER TABLE tender_notices
+  ADD COLUMN IF NOT EXISTS file_path TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE tender_notices
+  ADD COLUMN IF NOT EXISTS file_type VARCHAR(50) NOT NULL DEFAULT 'unknown';
+
+ALTER TABLE tender_notices
+  ADD COLUMN IF NOT EXISTS deadline DATE;
+
+UPDATE tender_notices
+SET summary = COALESCE(summary, description)
+WHERE summary IS NULL;
+
+UPDATE tender_notices
+SET deadline = COALESCE(deadline, submission_deadline, CURRENT_DATE)
+WHERE deadline IS NULL;
+
+UPDATE tender_notices
+SET status = CASE
+  WHEN status = 'closed' THEN 'expired'
+  WHEN status = 'awarded' THEN 'archived'
+  ELSE status
+END;
+
+ALTER TABLE tender_notices
+  ALTER COLUMN deadline SET NOT NULL;
+
+ALTER TABLE tender_notices
+  ADD CONSTRAINT tender_notices_status_check
+  CHECK (status IN ('draft', 'published', 'expired', 'archived'));
+
+ALTER TABLE tender_notices
+  DROP COLUMN IF EXISTS rfq_number,
+  DROP COLUMN IF EXISTS description,
+  DROP COLUMN IF EXISTS submission_deadline,
+  DROP COLUMN IF EXISTS published_at,
+  DROP COLUMN IF EXISTS created_at,
+  DROP COLUMN IF EXISTS updated_at;
+
+ALTER TABLE tender_notices
+  ALTER COLUMN file_path DROP DEFAULT;
+
+ALTER TABLE tender_notices
+  ALTER COLUMN file_type DROP DEFAULT;
 
 -- ============================================
 -- 6. Update notifications table
@@ -100,8 +152,7 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
 CREATE INDEX IF NOT EXISTS idx_items_current_stock ON items(current_stock);
 CREATE INDEX IF NOT EXISTS idx_item_receipts_challan_no ON item_receipts(challan_no);
-CREATE INDEX IF NOT EXISTS idx_tender_notices_rfq_number ON tender_notices(rfq_number);
-CREATE INDEX IF NOT EXISTS idx_tender_notices_published_at ON tender_notices(published_at);
+CREATE INDEX IF NOT EXISTS idx_tender_notices_deadline ON tender_notices(deadline);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
 
 -- ============================================
@@ -117,10 +168,6 @@ CREATE TRIGGER update_item_categories_updated_at BEFORE UPDATE ON item_categorie
 
 DROP TRIGGER IF EXISTS update_items_updated_at ON items;
 CREATE TRIGGER update_items_updated_at BEFORE UPDATE ON items
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-DROP TRIGGER IF EXISTS update_tender_notices_updated_at ON tender_notices;
-CREATE TRIGGER update_tender_notices_updated_at BEFORE UPDATE ON tender_notices
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================

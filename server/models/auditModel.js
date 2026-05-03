@@ -1,5 +1,28 @@
 const { pool } = require('../config/db');
 
+const AUDIT_ACTION_ALIASES = {
+  CREATE: 'INSERT',
+  APPROVE: 'UPDATE',
+  REJECT: 'UPDATE',
+  UPDATE_ROLE: 'UPDATE',
+};
+
+const VALID_AUDIT_ACTIONS = new Set(['INSERT', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT']);
+
+function normalizeAuditAction(action) {
+  const normalized = String(action || '').trim().toUpperCase();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (VALID_AUDIT_ACTIONS.has(normalized)) {
+    return normalized;
+  }
+
+  return AUDIT_ACTION_ALIASES[normalized] || null;
+}
+
 async function listAuditLogs({ search, action, tableName, fromDate, toDate, limit = 200 } = {}) {
   const filters = [];
   const params = [];
@@ -63,12 +86,19 @@ async function listAuditLogs({ search, action, tableName, fromDate, toDate, limi
 
 async function logAuditAction({ userId, action, tableName, recordId, details } = {}) {
   try {
+    const normalizedAction = normalizeAuditAction(action);
+
+    if (!normalizedAction) {
+      console.warn(`Skipping audit log with unsupported action: ${action}`);
+      return null;
+    }
+
     const query = `
       INSERT INTO audit_logs (user_id, action, table_name, record_id, details, created_at)
       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
       RETURNING id
     `;
-    const result = await pool.query(query, [userId || null, action, tableName, recordId || null, details || null]);
+    const result = await pool.query(query, [userId || null, normalizedAction, tableName, recordId || null, details || null]);
     return result.rows[0];
   } catch (error) {
     console.error('Audit log error:', error);
