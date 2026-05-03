@@ -1,12 +1,31 @@
 const express = require('express');
-const { register, login, getUsers, getPending, approve, reject, updateRole, updateProfile } = require('../controllers/authController');
+const {
+	register,
+	verifyRegistrationOtp,
+	resendRegistrationOtp,
+	login,
+	forgotPassword,
+	verifyForgotOtp,
+	resetPassword,
+	getUsers,
+	getPending,
+	approve,
+	reject,
+	updateRole,
+	updateProfile,
+} = require('../controllers/authController');
 const { verifyToken, isAdmin } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
 // Public routes
 router.post('/register', register);
+router.post('/register/verify-otp', verifyRegistrationOtp);
+router.post('/register/resend-otp', resendRegistrationOtp);
 router.post('/login', login);
+router.post('/forgot-password', forgotPassword);
+router.post('/forgot-password/verify-otp', verifyForgotOtp);
+router.post('/reset-password', resetPassword);
 
 // Protected routes (authenticated users)
 router.patch('/profile', verifyToken, updateProfile);
