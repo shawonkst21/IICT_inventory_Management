@@ -1,4 +1,7 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000"
 
 function getAuthToken() {
   if (typeof window === 'undefined') {
@@ -195,6 +198,16 @@ export type Category = {
   description?: string | null
 }
 
+export type AdminUser = {
+  id: number
+  name: string
+  email: string
+  role: string | null
+  expected_role: string
+  status: string
+  created_at: string
+}
+
 export type StockLevelItem = {
   id: number
   item_name: string
@@ -223,6 +236,44 @@ export async function fetchCategories(): Promise<Category[]> {
   }
 
   return payload.data
+}
+
+export async function fetchAdminUsers(): Promise<AdminUser[]> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/admin/users`, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    throw new Error("Unable to fetch admin users")
+  }
+
+  const payload = (await response.json()) as AdminUser[]
+
+  if (!Array.isArray(payload)) {
+    throw new Error("Unexpected response from admin users endpoint")
+  }
+
+  return payload
+}
+
+export async function fetchPendingUsers(): Promise<AdminUser[]> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/admin/pending`, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    throw new Error("Unable to fetch pending users")
+  }
+
+  const payload = (await response.json()) as AdminUser[]
+
+  if (!Array.isArray(payload)) {
+    throw new Error("Unexpected response from pending users endpoint")
+  }
+
+  return payload
 }
 
 export type AdminCategory = Category
@@ -296,6 +347,172 @@ export async function deleteAdminCategory(categoryId: number): Promise<void> {
 
   if (!response.ok || !responseData.ok) {
     throw new Error(responseData.message || "Failed to delete category")
+  }
+}
+
+export type AuditLogEntry = {
+  id: number
+  user_id: number | null
+  user_name: string | null
+  user_email: string | null
+  action: string
+  table_name: string | null
+  record_id: number | null
+  details: string | null
+  created_at: string
+}
+
+export type AuditLogQuery = {
+  search?: string
+  action?: string
+  tableName?: string
+  fromDate?: string
+  toDate?: string
+}
+
+export type TenderNoticeStatus = "draft" | "published" | "expired" | "archived"
+
+export type TenderNotice = {
+  id: number
+  created_by: number | null
+  creator_name?: string | null
+  title: string
+  summary: string | null
+  file_path: string
+  file_type: string
+  deadline: string
+  status: TenderNoticeStatus
+}
+
+export type TenderNoticePayload = {
+  title: string
+  summary?: string
+  deadline: string
+  status: TenderNoticeStatus
+  fileName?: string
+  mimeType?: string
+  fileData?: string
+}
+
+export function getFileUrl(filePath: string) {
+  if (!filePath) return ""
+  if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+    return filePath
+  }
+
+  return `${API_BASE_URL}${filePath}`
+}
+
+export async function fetchAdminLogs(query: AuditLogQuery = {}): Promise<AuditLogEntry[]> {
+  const params = new URLSearchParams()
+
+  if (query.search) params.set('search', query.search)
+  if (query.action) params.set('action', query.action)
+  if (query.tableName) params.set('tableName', query.tableName)
+  if (query.fromDate) params.set('fromDate', query.fromDate)
+  if (query.toDate) params.set('toDate', query.toDate)
+
+  const response = await fetch(`${API_BASE_URL}/api/admin/logs?${params.toString()}`, {
+    cache: 'no-store',
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    throw new Error('Unable to fetch audit logs')
+  }
+
+  const payload = (await response.json()) as ApiResponse<AuditLogEntry[]>
+
+  if (!payload.ok || !Array.isArray(payload.data)) {
+    throw new Error(payload.message || 'Unexpected response from audit logs endpoint')
+  }
+
+  return payload.data
+}
+
+export async function fetchPublishedTenderNotices(): Promise<TenderNotice[]> {
+  const response = await fetch(`${API_BASE_URL}/api/tenders`, {
+    cache: "no-store",
+  })
+
+  if (!response.ok) {
+    throw new Error("Unable to fetch tender notices")
+  }
+
+  const payload = (await response.json()) as ApiResponse<TenderNotice[]>
+
+  if (!payload.ok || !Array.isArray(payload.data)) {
+    throw new Error(payload.message || "Unexpected response from tender notices endpoint")
+  }
+
+  return payload.data
+}
+
+export async function fetchAdminTenderNotices(): Promise<TenderNotice[]> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/tenders`, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    throw new Error("Unable to fetch admin tender notices")
+  }
+
+  const payload = (await response.json()) as ApiResponse<TenderNotice[]>
+
+  if (!payload.ok || !Array.isArray(payload.data)) {
+    throw new Error(payload.message || "Unexpected response from admin tender notices endpoint")
+  }
+
+  return payload.data
+}
+
+export async function createAdminTenderNotice(payload: TenderNoticePayload): Promise<TenderNotice> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/tenders`, {
+    method: "POST",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  })
+
+  const responseData = (await response.json()) as ApiResponse<TenderNotice>
+
+  if (!response.ok || !responseData.ok) {
+    throw new Error(responseData.error || responseData.message || "Failed to create tender notice")
+  }
+
+  return responseData.data!
+}
+
+export async function updateAdminTenderNotice(id: number, payload: TenderNoticePayload): Promise<TenderNotice> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/tenders/${id}`, {
+    method: "PATCH",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  })
+
+  const responseData = (await response.json()) as ApiResponse<TenderNotice>
+
+  if (!response.ok || !responseData.ok) {
+    throw new Error(responseData.error || responseData.message || "Failed to update tender notice")
+  }
+
+  return responseData.data!
+}
+
+export async function deleteAdminTenderNotice(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/tenders/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  })
+
+  const responseData = (await response.json()) as ApiResponse<null>
+
+  if (!response.ok || !responseData.ok) {
+    throw new Error(responseData.error || responseData.message || "Failed to delete tender notice")
   }
 }
 
@@ -551,4 +768,3 @@ export async function fetchItemReceipts(): Promise<ItemReceiptRecord[]> {
 
   return payload.data
 }
-

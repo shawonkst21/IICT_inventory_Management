@@ -4,7 +4,7 @@ async function findDefaultReceiverId() {
   const preferred = await pool.query(
     `SELECT id
      FROM users
-     WHERE is_active = true AND role = 'inventory_manager'
+      WHERE is_active = true AND role = 'manager'
      ORDER BY id ASC
      LIMIT 1`,
   );

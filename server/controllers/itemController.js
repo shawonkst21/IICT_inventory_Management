@@ -15,6 +15,7 @@ const {
   updateCategory,
   deleteCategory,
 } = require('../models/itemModel');
+const { logAuditAction } = require('../models/auditModel');
 
 function parsePositiveInt(value) {
   const parsed = Number.parseInt(String(value), 10);
@@ -172,6 +173,14 @@ async function createAdminCategory(req, res) {
       description: description || null,
     });
 
+    await logAuditAction({
+      userId: req.user?.id,
+      action: 'CREATE',
+      tableName: 'item_categories',
+      recordId: created.id,
+      details: `Created category: ${name}`,
+    });
+
     res.status(201).json({
       ok: true,
       message: 'Category created successfully',
@@ -229,6 +238,14 @@ async function updateAdminCategory(req, res) {
       description: description || null,
     });
 
+    await logAuditAction({
+      userId: req.user?.id,
+      action: 'UPDATE',
+      tableName: 'item_categories',
+      recordId: categoryId,
+      details: `Updated category: ${name}`,
+    });
+
     res.status(200).json({
       ok: true,
       message: 'Category updated successfully',
@@ -264,6 +281,14 @@ async function deleteAdminCategory(req, res) {
     }
 
     await deleteCategory(categoryId);
+
+    await logAuditAction({
+      userId: req.user?.id,
+      action: 'DELETE',
+      tableName: 'item_categories',
+      recordId: categoryId,
+      details: `Deleted category: ${category.name}`,
+    });
 
     res.status(200).json({
       ok: true,
@@ -349,6 +374,14 @@ async function createAdminItem(req, res) {
       lowStockThreshold: parsedLowStockThreshold,
     });
 
+    await logAuditAction({
+      userId: req.user?.id,
+      action: 'CREATE',
+      tableName: 'items',
+      recordId: created.id,
+      details: `Created item: ${normalizedName}`,
+    });
+
     res.status(201).json({
       ok: true,
       message: 'Item created successfully',
@@ -431,6 +464,14 @@ async function updateAdminItem(req, res) {
       lowStockThreshold: parsedLowStockThreshold,
     });
 
+    await logAuditAction({
+      userId: req.user?.id,
+      action: 'UPDATE',
+      tableName: 'items',
+      recordId: itemId,
+      details: `Updated item: ${normalizedName}`,
+    });
+
     res.status(200).json({
       ok: true,
       message: 'Item updated successfully',
@@ -466,6 +507,14 @@ async function deleteAdminItem(req, res) {
     }
 
     await deleteItem(itemId);
+
+    await logAuditAction({
+      userId: req.user?.id,
+      action: 'DELETE',
+      tableName: 'items',
+      recordId: itemId,
+      details: `Deleted item: ${item.name}`,
+    });
 
     res.status(200).json({
       ok: true,

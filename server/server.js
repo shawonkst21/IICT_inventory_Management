@@ -1,6 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const path = require("path");
 
 dotenv.config();
 
@@ -10,7 +11,9 @@ const authRoutes = require("./routes/authRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const itemRequestRoutes = require("./routes/itemRequestRoutes");
 const itemReceiptRoutes = require("./routes/itemReceiptRoutes");
-const { verifyToken, isAdminOrManager, isAuthenticated } = require("./middlewares/authMiddleware");
+const adminRoutes = require("./routes/adminRoutes");
+const tenderRoutes = require("./routes/tenderRoutes");
+const { verifyToken, isAdminOrManager, isAuthenticated, isAdmin } = require("./middlewares/authMiddleware");
 
 const PORT = Number.parseInt(process.env.PORT || "5000", 10);
 const CLIENT_URL =
@@ -29,7 +32,7 @@ function isAllowedClientOrigin(origin) {
   return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 }
 
-app.use(express.json());
+app.use(express.json({ limit: "15mb" }));
 
 app.use(
   cors({
@@ -48,7 +51,10 @@ app.use(
 );
 
 app.use("/", systemRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", verifyToken, isAdmin, adminRoutes);
+app.use("/api/tenders", tenderRoutes);
 // Mount item routes without global admin middleware so public endpoints
 // (like /options) are accessible to staff. Admin-only routes are protected
 // inside the router under the /admin path.
