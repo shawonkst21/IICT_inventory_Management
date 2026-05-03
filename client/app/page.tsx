@@ -132,46 +132,46 @@ export default function HomePage() {
           </div>
         </Marquee>
       </div>
-      <TiltedImage />
-      <section className="mx-auto mt-24 w-full max-w-6xl px-6 lg:px-8">
-        <div className="rounded-[32px] border border-slate-200 bg-[linear-gradient(135deg,#fffdf7_0%,#f8f4ec_100%)] p-8">
+      
+      <section className="mx-auto mt-24 w-full max-w-6xl px-10 lg:px-8   bg-no-repeat bg-cover">
+        <div className="rounded-[32px] border border-slate-200/80 bg-white/75 p-8 shadow-sm backdrop-blur dark:border-slate-700/60 dark:bg-slate-950/55">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-medium uppercase tracking-[0.22em] text-slate-500">Public notices</p>
-              <h2 className="mt-2 text-3xl font-semibold text-slate-950">Tender notices</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+              <p className="text-sm font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Public notices</p>
+              <h2 className="mt-2 text-3xl font-semibold text-slate-950 dark:text-white">Tender notices</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
                 Latest published tender announcements from IICT. Open the attached PDF or image notice directly.
               </p>
             </div>
           </div>
 
           {loadingTenders ? (
-            <div className="mt-8 flex items-center justify-center rounded-3xl border border-slate-200 bg-white px-6 py-12 text-slate-600">
+            <div className="mt-8 flex items-center justify-center rounded-3xl border border-slate-200/80 bg-white/80 px-6 py-12 text-slate-600 backdrop-blur dark:border-slate-700/60 dark:bg-slate-950/60 dark:text-slate-300">
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Loading tender notices...
             </div>
           ) : tenders.length === 0 ? (
-            <div className="mt-8 rounded-3xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center text-slate-500">
+            <div className="mt-8 rounded-3xl border border-dashed border-slate-200/80 bg-white/80 px-6 py-12 text-center text-slate-500 backdrop-blur dark:border-slate-700/60 dark:bg-slate-950/60 dark:text-slate-400">
               No published tender notices are available right now.
             </div>
           ) : (
             <div className="mt-8">
               {activeTender ? (
-                <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white/85 shadow-sm backdrop-blur dark:border-slate-700/60 dark:bg-slate-950/70">
                   <div className="flex flex-col">
                     <div className="relative">
                       {isImageFile(activeTender.file_type) ? (
-                        <div className="relative h-[360px] w-full bg-slate-100 sm:h-[460px] lg:h-[560px]">
+                        <div className="relative h-90 w-full bg-slate-100 dark:bg-slate-900 sm:h-115 lg:h-140">
                           <Image
                             src={getFileUrl(activeTender.file_path)}
                             alt={activeTender.title}
                             fill
-                            className="object-contain bg-slate-100"
+                            className="object-contain bg-slate-100 dark:bg-slate-900"
                             unoptimized
                           />
                         </div>
                       ) : (
-                        <div className="flex h-[360px] items-center justify-center bg-[linear-gradient(135deg,#111827_0%,#334155_100%)] text-white sm:h-[460px] lg:h-[560px]">
+                        <div className="flex h-90 items-center justify-center bg-[linear-gradient(135deg,#111827_0%,#334155_100%)] text-white sm:h-115 lg:h-140 dark:bg-[linear-gradient(135deg,#020617_0%,#1e293b_100%)]">
                           <div className="text-center">
                             <FileText className="mx-auto h-20 w-20" />
                             <p className="mt-5 text-sm uppercase tracking-[0.2em] text-slate-300">PDF Notice Preview</p>
@@ -187,14 +187,14 @@ export default function HomePage() {
                             <CalendarDays className="h-4 w-4" />
                             Deadline {formatDeadline(activeTender.deadline)}
                           </div>
-                          <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                          <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
                             {activeTenderIndex + 1} / {tenders.length}
                           </div>
                         </div>
 
                         <div>
-                          <h3 className="text-2xl font-semibold text-slate-950">{activeTender.title}</h3>
-                          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
+                          <h3 className="text-2xl font-semibold text-slate-950 dark:text-white">{activeTender.title}</h3>
+                          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300">
                             {activeTender.summary || "Official notice published by the administration."}
                           </p>
                         </div>
@@ -204,7 +204,7 @@ export default function HomePage() {
                             <button
                               type="button"
                               onClick={showPreviousTender}
-                              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-900 dark:hover:text-white"
                               aria-label="Previous tender notice"
                             >
                               <ArrowLeft className="h-4 w-4" />
@@ -212,7 +212,7 @@ export default function HomePage() {
                             <button
                               type="button"
                               onClick={showNextTender}
-                              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-900 dark:hover:text-white"
                               aria-label="Next tender notice"
                             >
                               <ArrowRight className="h-4 w-4" />
@@ -222,7 +222,7 @@ export default function HomePage() {
                           <Link
                             href={getFileUrl(activeTender.file_path)}
                             target="_blank"
-                            className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                            className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                           >
                             {isImageFile(activeTender.file_type) ? <FileImage className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
                             Open notice
@@ -237,8 +237,8 @@ export default function HomePage() {
                               onClick={() => setActiveTenderIndex(index)}
                               className={`h-2.5 rounded-full transition ${
                                 index === activeTenderIndex
-                                  ? "w-10 bg-slate-900"
-                                  : "w-2.5 bg-slate-300 hover:bg-slate-400"
+                                  ? "w-10 bg-slate-900 dark:bg-white"
+                                  : "w-2.5 bg-slate-300 hover:bg-slate-400 dark:bg-slate-600 dark:hover:bg-slate-500"
                               }`}
                               aria-label={`Show tender notice ${index + 1}`}
                             >
@@ -254,49 +254,6 @@ export default function HomePage() {
           )}
         </div>
       </section>
-      {/* <SectionTitle
-        text1="FEATURES"
-        text2="Built for builders"
-        text3="Components, patterns and pages — everything you need to ship."
-      />
-
-      <div className="flex flex-wrap items-center justify-center gap-6 md:gap-4 mt-10 px-6 md:px-16 lg:px-24 xl:px-32">
-        {featuresData.map((feature, index) => (
-          <div
-            key={index}
-            className="p-6 rounded-xl space-y-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/20 max-w-80 md:max-w-66"
-          >
-            <feature.icon
-              className="text-purple-500 size-8 mt-4"
-              strokeWidth={1.3}
-            />
-            <h3 className="text-base font-medium">{feature.title}</h3>
-            <p className="text-slate-400 line-clamp-2">{feature.description}</p>
-          </div>
-        ))}
-      </div>
-
-      <Pricing />
-
-      <FaqSection />
-
-      <div className="flex flex-col items-center text-center justify-center mt-20">
-        <h3 className="text-3xl font-semibold mt-16 mb-4">
-          Ready to Get Started?
-        </h3>
-        <p className="text-slate-600 dark:text-slate-200 max-w-xl mx-auto">
-          Join thousands of satisfied customers and transform your business
-          today.
-        </p>
-        <div className="flex items-center gap-4 mt-8">
-          <button className="bg-purple-600 hover:bg-purple-700 transition text-white rounded-md px-6 h-11">
-            Start free trial
-          </button>
-          <button className="border border-purple-900 transition text-slate-600 dark:text-white rounded-md px-6 h-11">
-            Contact sales
-          </button>
-        </div>
-      </div> */}
       <Footer/>
     </>
   );

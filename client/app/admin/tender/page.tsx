@@ -316,7 +316,7 @@ export default function AdminTenderPage() {
             <input
               value={draft.title}
               onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-black outline-none transition focus:border-slate-400"
               placeholder="Tender notice title"
             />
           </label>
@@ -327,7 +327,7 @@ export default function AdminTenderPage() {
               type="date"
               value={draft.deadline}
               onChange={(event) => setDraft((current) => ({ ...current, deadline: event.target.value }))}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-black outline-none transition focus:border-slate-400"
             />
           </label>
 
@@ -336,7 +336,7 @@ export default function AdminTenderPage() {
             <textarea
               value={draft.summary}
               onChange={(event) => setDraft((current) => ({ ...current, summary: event.target.value }))}
-              className="min-h-28 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+              className="min-h-28 w-full rounded-2xl border border-slate-200 px-4 py-3 text-black outline-none transition focus:border-slate-400"
               placeholder="Short note shown on the landing page"
             />
           </label>
@@ -348,7 +348,7 @@ export default function AdminTenderPage() {
               onChange={(event) =>
                 setDraft((current) => ({ ...current, status: event.target.value as TenderNoticeStatus }))
               }
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-black outline-none transition focus:border-slate-400"
             >
               <option value="draft">Draft</option>
               <option value="published">Published</option>
@@ -359,12 +359,17 @@ export default function AdminTenderPage() {
 
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-900">Notice file</span>
-            <input
-              type="file"
-              accept=".pdf,image/png,image/jpeg,image/webp"
-              onChange={handleDraftFileChange}
-              className="block w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm"
-            />
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500">
+                <Upload className="h-5 w-5" />
+              </div>
+              <input
+                type="file"
+                accept=".pdf,image/png,image/jpeg,image/webp"
+                onChange={handleDraftFileChange}
+                className="block w-full rounded-2xl border border-slate-200 px-10 py-3 text-sm text-black"
+              />
+            </div>
             <p className="text-xs text-slate-500">
               {draftFile ? `Selected: ${draftFile.fileName}` : "Accepted: PDF, JPG, PNG, WEBP"}
             </p>
@@ -424,7 +429,7 @@ export default function AdminTenderPage() {
                             onChange={(event) =>
                               setEditingDraft((current) => ({ ...current, title: event.target.value }))
                             }
-                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slate-400"
+                            className="w-full text-black rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slate-400"
                           />
                         </label>
 
@@ -436,7 +441,7 @@ export default function AdminTenderPage() {
                             onChange={(event) =>
                               setEditingDraft((current) => ({ ...current, deadline: event.target.value }))
                             }
-                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slate-400"
+                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-black outline-none transition focus:border-slate-400"
                           />
                         </label>
 
@@ -447,7 +452,7 @@ export default function AdminTenderPage() {
                             onChange={(event) =>
                               setEditingDraft((current) => ({ ...current, summary: event.target.value }))
                             }
-                            className="min-h-28 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slate-400"
+                            className="min-h-28 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-black outline-none transition focus:border-slate-400"
                           />
                         </label>
 
@@ -461,7 +466,7 @@ export default function AdminTenderPage() {
                                 status: event.target.value as TenderNoticeStatus,
                               }))
                             }
-                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-slate-400"
+                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-black outline-none transition focus:border-slate-400"
                           >
                             <option value="draft">Draft</option>
                             <option value="published">Published</option>
@@ -472,12 +477,17 @@ export default function AdminTenderPage() {
 
                         <label className="space-y-2">
                           <span className="text-sm font-medium text-slate-900">Replace file</span>
-                          <input
-                            type="file"
-                            accept=".pdf,image/png,image/jpeg,image/webp"
-                            onChange={handleEditingFileChange}
-                            className="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm"
-                          />
+                          <div className="relative">
+                            <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500">
+                              <Upload className="h-5 w-5" />
+                            </div>
+                            <input
+                              type="file"
+                              accept=".pdf,image/png,image/jpeg,image/webp"
+                              onChange={handleEditingFileChange}
+                              className="block w-full rounded-2xl border border-slate-200 bg-white px-10 py-3 text-sm text-black"
+                            />
+                          </div>
                           <p className="text-xs text-slate-500">
                             {editingFile ? `Selected: ${editingFile.fileName}` : "Leave empty to keep current file"}
                           </p>
