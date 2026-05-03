@@ -2,17 +2,22 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
 
-const pool = new Pool({
-  host: process.env.IICT_PGHOST || '127.0.0.1',
-  port: Number.parseInt(process.env.IICT_PGPORT || '5432', 10),
-  user: process.env.IICT_PGUSER || 'postgres',
-  password: process.env.IICT_PGPASSWORD || '',
-  database: process.env.IICT_PGDATABASE || 'postgres',
-  ssl:
-    (process.env.IICT_DATABASE_SSL || 'false').toLowerCase() === 'true'
-      ? { rejectUnauthorized: false }
-      : false,
-});
+const pool = process.env.DATABASE_URL
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+    })
+  : new Pool({
+      host: process.env.IICT_PGHOST || '127.0.0.1',
+      port: Number.parseInt(process.env.IICT_PGPORT || '5432', 10),
+      user: process.env.IICT_PGUSER || 'postgres',
+      password: process.env.IICT_PGPASSWORD || '',
+      database: process.env.IICT_PGDATABASE || 'postgres',
+      ssl:
+        (process.env.IICT_DATABASE_SSL || 'false').toLowerCase() === 'true'
+          ? { rejectUnauthorized: false }
+          : false,
+    });
 
 async function main() {
   const client = await pool.connect();
