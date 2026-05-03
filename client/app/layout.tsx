@@ -22,8 +22,8 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
     return (
-        <html lang="en" className={cn("overflow-hidden", poppins.variable, "font-sans", geist.variable)} suppressHydrationWarning>
-            <body className="h-full">
+        <html lang="en" className={cn(poppins.variable, "font-sans", geist.variable)} suppressHydrationWarning>
+            <body className="min-h-screen overflow-x-hidden">
                 <ThemeContextProvider>
                     <AuthProvider>
                         {/* <LenisScroll />             */}

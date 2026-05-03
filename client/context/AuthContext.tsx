@@ -27,6 +27,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:5000';
+
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+      `${API_BASE_URL}/api/auth/login`,
       {
         method: 'POST',
         headers: {
@@ -85,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     newPassword?: string;
   }) => {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile`,
+      `${API_BASE_URL}/api/auth/profile`,
       {
         method: 'PATCH',
         headers: {

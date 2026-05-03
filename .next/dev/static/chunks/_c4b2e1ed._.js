@@ -75,6 +75,7 @@ var _s = __turbopack_context__.k.signature(), _s1 = __turbopack_context__.k.sign
 const AuthContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createContext"])(undefined);
 function AuthProvider({ children }) {
     _s();
+    const API_BASE_URL = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_API_BASE_URL || ("TURBOPACK compile-time value", "http://localhost:5000") || 'http://localhost:5000';
     const [user, setUser] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const [token, setToken] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(true);
@@ -92,7 +93,7 @@ function AuthProvider({ children }) {
         }
     }["AuthProvider.useEffect"], []);
     const login = async (email, password)=>{
-        const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:5000")}/api/auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -120,7 +121,7 @@ function AuthProvider({ children }) {
         router.push('/auth/login');
     };
     const updateProfile = async (data)=>{
-        const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:5000")}/api/auth/profile`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -150,7 +151,7 @@ function AuthProvider({ children }) {
         children: children
     }, void 0, false, {
         fileName: "[project]/context/AuthContext.tsx",
-        lineNumber: 113,
+        lineNumber: 118,
         columnNumber: 5
     }, this);
 }
