@@ -25,11 +25,23 @@ function isAllowedClientOrigin(origin) {
     return true;
   }
 
+  // Allow the configured client URL
   if (origin === CLIENT_URL) {
     return true;
   }
 
-  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  // Allow localhost (for local development)
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+    return true;
+  }
+
+  // Allow any origin in production (Render deployment)
+  // You can restrict this later by setting ALLOWED_ORIGINS env var
+  if (process.env.NODE_ENV === 'production') {
+    return true;
+  }
+
+  return false;
 }
 
 app.use(express.json({ limit: "15mb" }));
