@@ -2,7 +2,6 @@ import { Poppins, Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeContextProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
-import LenisScroll from "@/components/Lenis";
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
@@ -18,6 +17,11 @@ const poppins = Poppins({
 export const metadata = {
     title: "IICT inventory management system",
     description: "Landing is a SaaS template for developers to build SaaS applications.",
+    icons: {
+        icon: "/assets/iict_darkmode.png",
+        shortcut: "/assets/iict_darkmode.png",
+        apple: "/assets/iict_darkmode.png",
+    },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

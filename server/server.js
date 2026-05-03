@@ -5,7 +5,7 @@ const path = require("path");
 
 dotenv.config();
 
-const { pool, testDatabaseConnection } = require("./config/db");
+const { pool, testDatabaseConnection, getDatabaseConnectionInfo } = require("./config/db");
 const systemRoutes = require("./routes/systemRoutes");
 const authRoutes = require("./routes/authRoutes");
 const itemRoutes = require("./routes/itemRoutes");
@@ -65,7 +65,11 @@ app.use("/api/item-receipts", verifyToken, isAdminOrManager, itemReceiptRoutes);
 async function startServer() {
   try {
     const dbTime = await testDatabaseConnection();
-    console.log("PostgreSQL connected:", dbTime);
+    const dbInfo = getDatabaseConnectionInfo();
+    console.log(
+      `PostgreSQL connected via ${dbInfo.mode} (${dbInfo.host}:${dbInfo.port}/${dbInfo.database}) at`,
+      dbTime,
+    );
 
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);

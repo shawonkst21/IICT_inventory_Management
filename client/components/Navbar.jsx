@@ -1,7 +1,6 @@
 "use client";
 import { navLinks } from "@/data/navLinks";
 import { MenuIcon, XIcon } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
@@ -22,9 +21,12 @@ export default function Navbar() {
 
     return (
         <nav className={`flex items-center justify-between fixed z-50 top-0 w-full px-6 md:px-16 lg:px-24 xl:px-32 py-4 ${openMobileMenu ? '' : 'backdrop-blur'}`}>
-            <a href="/">
-                <Image className="h-9 md:h-9.5 w-auto shrink-0" src={isDark ? "/assets/iict_darkmode.png" : "/assets/iict.png"} alt="IICT Logo" width={140} height={40} priority fetchPriority="high" />
-            </a>
+            {/* <a href="/">
+                /* <Image className="h-9 md:h-9.5 w-auto shrink-0" src={isDark ? "/assets/iict_darkmode.png" : "/assets/iict.png"} alt="IICT Logo" width={140} height={40} priority fetchPriority="high" /> 
+            </a> */}
+            <span className={`text-lg font-black tracking-[0.24em] uppercase ${isDark ? 'text-white' : 'text-[#1A1916]'}`}>
+                StockFlow IICT
+            </span>
             {/* <div className="hidden items-center md:gap-8 lg:gap-9 md:flex lg:pl-20">
                 {navLinks.map((link) => (
                     <Link key={link.name} href={link.href} className="hover:text-slate-600 dark:hover:text-slate-300">
