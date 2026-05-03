@@ -5,15 +5,13 @@ async function findDefaultRequesterId() {
     `SELECT id
      FROM users
      WHERE is_active = true
-     ORDER BY
-       CASE role
-         WHEN 'user' THEN 1
-         WHEN 'staff' THEN 1
-         WHEN 'inventory_manager' THEN 2
-         WHEN 'manager' THEN 2
-         WHEN 'admin' THEN 3
-        ELSE 4
-       END,
+      ORDER BY
+        CASE role
+          WHEN 'user' THEN 1
+          WHEN 'manager' THEN 2
+          WHEN 'admin' THEN 3
+         ELSE 4
+        END,
        id ASC
      LIMIT 1`,
   );
@@ -25,7 +23,7 @@ async function findDefaultInventoryManagerId() {
   const result = await pool.query(
     `SELECT id
      FROM users
-     WHERE is_active = true AND role = 'inventory_manager'
+      WHERE is_active = true AND role = 'manager'
      ORDER BY id ASC
      LIMIT 1`,
   );

@@ -16,6 +16,7 @@ const {
   updateUnverifiedUserRegistration,
 } = require('../models/userModel');
 const { sendOtpEmail } = require('../utils/mailer');
+const { logAuditAction } = require('../models/auditModel');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const OTP_EXPIRY_MINUTES = Number.parseInt(process.env.OTP_EXPIRY_MINUTES || '10', 10);
@@ -273,6 +274,14 @@ async function approve(req, res) {
       return res.status(400).json({ error: 'User cannot be approved before email verification' });
     }
 
+    await logAuditAction({
+      userId: req.user?.id,
+      action: 'APPROVE',
+      tableName: 'users',
+      recordId: parseInt(userId, 10),
+      details: `Approved user: ${user.name} (${user.email})`,
+    });
+
     return res.status(200).json({
       message: 'User approved successfully',
       user,
@@ -288,6 +297,15 @@ async function reject(req, res) {
   try {
     const { userId } = req.params;
     const user = await rejectUser(userId);
+
+    await logAuditAction({
+      userId: req.user?.id,
+      action: 'REJECT',
+      tableName: 'users',
+      recordId: parseInt(userId, 10),
+      details: `Rejected user: ${user.name} (${user.email})`,
+    });
+
     return res.status(200).json({
       message: 'User rejected',
       user,
@@ -309,6 +327,15 @@ async function updateRole(req, res) {
     }
 
     const user = await updateUserRole(userId, role);
+
+    await logAuditAction({
+      userId: req.user?.id,
+      action: 'UPDATE_ROLE',
+      tableName: 'users',
+      recordId: parseInt(userId, 10),
+      details: `Updated user role: ${user.name} -> ${role}`,
+    });
+
     return res.status(200).json({
       message: 'User role updated successfully',
       user,

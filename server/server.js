@@ -10,7 +10,8 @@ const authRoutes = require("./routes/authRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const itemRequestRoutes = require("./routes/itemRequestRoutes");
 const itemReceiptRoutes = require("./routes/itemReceiptRoutes");
-const { verifyToken, isAdminOrManager, isAuthenticated } = require("./middlewares/authMiddleware");
+const adminRoutes = require("./routes/adminRoutes");
+const { verifyToken, isAdminOrManager, isAuthenticated, isAdmin } = require("./middlewares/authMiddleware");
 
 const PORT = Number.parseInt(process.env.PORT || "5000", 10);
 const CLIENT_URL =
@@ -49,6 +50,7 @@ app.use(
 
 app.use("/", systemRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", verifyToken, isAdmin, adminRoutes);
 // Mount item routes without global admin middleware so public endpoints
 // (like /options) are accessible to staff. Admin-only routes are protected
 // inside the router under the /admin path.

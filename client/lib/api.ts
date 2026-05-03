@@ -299,6 +299,53 @@ export async function deleteAdminCategory(categoryId: number): Promise<void> {
   }
 }
 
+export type AuditLogEntry = {
+  id: number
+  user_id: number | null
+  user_name: string | null
+  user_email: string | null
+  action: string
+  table_name: string | null
+  record_id: number | null
+  details: string | null
+  created_at: string
+}
+
+export type AuditLogQuery = {
+  search?: string
+  action?: string
+  tableName?: string
+  fromDate?: string
+  toDate?: string
+}
+
+export async function fetchAdminLogs(query: AuditLogQuery = {}): Promise<AuditLogEntry[]> {
+  const params = new URLSearchParams()
+
+  if (query.search) params.set('search', query.search)
+  if (query.action) params.set('action', query.action)
+  if (query.tableName) params.set('tableName', query.tableName)
+  if (query.fromDate) params.set('fromDate', query.fromDate)
+  if (query.toDate) params.set('toDate', query.toDate)
+
+  const response = await fetch(`${API_BASE_URL}/api/admin/logs?${params.toString()}`, {
+    cache: 'no-store',
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    throw new Error('Unable to fetch audit logs')
+  }
+
+  const payload = (await response.json()) as ApiResponse<AuditLogEntry[]>
+
+  if (!payload.ok || !Array.isArray(payload.data)) {
+    throw new Error(payload.message || 'Unexpected response from audit logs endpoint')
+  }
+
+  return payload.data
+}
+
 export type AdminItem = {
   id: number
   category_id: number

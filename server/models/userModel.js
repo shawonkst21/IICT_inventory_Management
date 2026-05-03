@@ -72,7 +72,7 @@ async function createUser(name, email, passwordHash, requestedRole = 'user', otp
      VALUES
       ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, $10)
      RETURNING id, name, email, role, expected_role, status, email_verified, created_at`,
-    [name, email, passwordHash, requestedRole, 'user', 'pending', false, otpHash, otpExpiresAt, 0]
+    [name, email, passwordHash, requestedRole, requestedRole, 'pending', false, otpHash, otpExpiresAt, 0]
   );
   return result.rows[0];
 }

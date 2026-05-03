@@ -1,4 +1,5 @@
 require('dotenv').config();
+const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
 
 const pool = new Pool({
@@ -24,18 +25,26 @@ async function main() {
       throw new Error('No public tables found. Run the migrations first.');
     }
 
+    // Generate a valid bcrypt hash for demo password
+    const demoPassword = 'password123';
+    const demoPasswordHash = await bcrypt.hash(demoPassword, 12);
+
     await client.query(`
-      insert into users (name, email, password_hash, role, is_active)
+      insert into users (name, email, password_hash, role, expected_role, is_active, email_verified, status)
       values
-        ('Admin User', 'admin@iict.local', '$2b$12$demo.hash.admin.user', 'admin', true),
-        ('Inventory Manager', 'inventory@iict.local', '$2b$12$demo.hash.inventory.manager', 'inventory_manager', true),
-        ('Lab Assistant', 'staff@iict.local', '$2b$12$demo.hash.staff.user', 'staff', true)
+        ('Admin User', 'admin@iict.local', $1, 'admin', 'admin', true, true, 'approved'),
+        ('Inventory Manager', 'inventory@iict.local', $1, 'manager', 'manager', true, true, 'approved'),
+        ('Lab Assistant', 'staff@iict.local', $1, 'user', 'user', true, true, 'approved')
       on conflict (email) do update
       set name = excluded.name,
           password_hash = excluded.password_hash,
           role = excluded.role,
-          is_active = excluded.is_active
-    `);
+          expected_role = excluded.expected_role,
+          is_active = excluded.is_active,
+          email_verified = excluded.email_verified,
+          status = excluded.status,
+          updated_at = CURRENT_TIMESTAMP
+    `, [demoPasswordHash]);
 
     const users = await client.query(
       `select id, email from users where email = any($1::text[]) order by email`,
