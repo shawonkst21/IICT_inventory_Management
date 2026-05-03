@@ -279,7 +279,7 @@ export default function AdminDashboardPage() {
   )
   const outOfStockItems = data.stockLevels.filter((item) => item.stock_status === "not_available")
   const totalStockUnits = data.items.reduce((sum, item) => sum + item.current_stock, 0)
-  const recentLogs = data.logs.slice(0, 6)
+  const recentLogs = data.logs.slice(0, 5)
   const newestPendingUsers = data.pendingUsers.slice(0, 5)
   const urgentStockItems = [...lowStockItems]
     .sort((a, b) => a.quantity - b.quantity)

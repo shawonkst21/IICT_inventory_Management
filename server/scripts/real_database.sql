@@ -147,20 +147,17 @@ CREATE TABLE IF NOT EXISTS tender_notices (
   id SERIAL PRIMARY KEY,
   created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
   title VARCHAR(255) NOT NULL,
-  rfq_number VARCHAR(100) UNIQUE,
-  description TEXT,
-  submission_deadline DATE,
-  status VARCHAR(50) CHECK (status IN ('draft', 'published', 'closed', 'awarded')) DEFAULT 'draft',
-  published_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  summary TEXT,
+  file_path TEXT NOT NULL,
+  file_type VARCHAR(50) NOT NULL,
+  deadline DATE NOT NULL,
+  status VARCHAR(20) CHECK (status IN ('draft', 'published', 'expired', 'archived')) NOT NULL DEFAULT 'draft'
 );
 
 -- Create indexes for tender_notices table
 CREATE INDEX IF NOT EXISTS idx_tender_notices_created_by ON tender_notices(created_by);
-CREATE INDEX IF NOT EXISTS idx_tender_notices_rfq_number ON tender_notices(rfq_number);
 CREATE INDEX IF NOT EXISTS idx_tender_notices_status ON tender_notices(status);
-CREATE INDEX IF NOT EXISTS idx_tender_notices_published_at ON tender_notices(published_at);
+CREATE INDEX IF NOT EXISTS idx_tender_notices_deadline ON tender_notices(deadline);
 
 -- ============================================================================
 -- 8. NOTIFICATIONS TABLE - User notifications

@@ -116,10 +116,10 @@ async function main() {
 
     const tenderNotices = await client.query(`
       insert into tender_notices (
-        created_by, title, rfq_number, description, submission_deadline, status, published_at
+        created_by, title, summary, file_path, file_type, deadline, status
       ) values
-        ($1, 'Procurement of Lab Accessories', 'RFQ-2026-014', 'Request for quotation for common lab accessories and peripherals', current_date + interval '12 days', 'published', now() - interval '1 day'),
-        ($2, 'Office Stationery Supply Contract', 'RFQ-2026-015', 'Annual stationery supply for campus offices', current_date + interval '20 days', 'draft', null)
+        ($1, 'Procurement of Lab Accessories', 'Tender notice for common lab accessories and peripherals.', '/uploads/tenders/lab-accessories-notice.pdf', 'application/pdf', current_date + interval '12 days', 'published'),
+        ($2, 'Office Stationery Supply Contract', 'Tender notice for annual campus stationery supply.', '/uploads/tenders/stationery-supply-notice.pdf', 'application/pdf', current_date + interval '20 days', 'draft')
       returning id
     `, [userIds['admin@iict.local'], userIds['inventory@iict.local']]);
 

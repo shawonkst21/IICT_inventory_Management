@@ -1,4 +1,7 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000"
 
 function getAuthToken() {
   if (typeof window === 'undefined') {
@@ -367,6 +370,39 @@ export type AuditLogQuery = {
   toDate?: string
 }
 
+export type TenderNoticeStatus = "draft" | "published" | "expired" | "archived"
+
+export type TenderNotice = {
+  id: number
+  created_by: number | null
+  creator_name?: string | null
+  title: string
+  summary: string | null
+  file_path: string
+  file_type: string
+  deadline: string
+  status: TenderNoticeStatus
+}
+
+export type TenderNoticePayload = {
+  title: string
+  summary?: string
+  deadline: string
+  status: TenderNoticeStatus
+  fileName?: string
+  mimeType?: string
+  fileData?: string
+}
+
+export function getFileUrl(filePath: string) {
+  if (!filePath) return ""
+  if (filePath.startsWith("http://") || filePath.startsWith("https://")) {
+    return filePath
+  }
+
+  return `${API_BASE_URL}${filePath}`
+}
+
 export async function fetchAdminLogs(query: AuditLogQuery = {}): Promise<AuditLogEntry[]> {
   const params = new URLSearchParams()
 
@@ -392,6 +428,92 @@ export async function fetchAdminLogs(query: AuditLogQuery = {}): Promise<AuditLo
   }
 
   return payload.data
+}
+
+export async function fetchPublishedTenderNotices(): Promise<TenderNotice[]> {
+  const response = await fetch(`${API_BASE_URL}/api/tenders`, {
+    cache: "no-store",
+  })
+
+  if (!response.ok) {
+    throw new Error("Unable to fetch tender notices")
+  }
+
+  const payload = (await response.json()) as ApiResponse<TenderNotice[]>
+
+  if (!payload.ok || !Array.isArray(payload.data)) {
+    throw new Error(payload.message || "Unexpected response from tender notices endpoint")
+  }
+
+  return payload.data
+}
+
+export async function fetchAdminTenderNotices(): Promise<TenderNotice[]> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/tenders`, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    throw new Error("Unable to fetch admin tender notices")
+  }
+
+  const payload = (await response.json()) as ApiResponse<TenderNotice[]>
+
+  if (!payload.ok || !Array.isArray(payload.data)) {
+    throw new Error(payload.message || "Unexpected response from admin tender notices endpoint")
+  }
+
+  return payload.data
+}
+
+export async function createAdminTenderNotice(payload: TenderNoticePayload): Promise<TenderNotice> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/tenders`, {
+    method: "POST",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  })
+
+  const responseData = (await response.json()) as ApiResponse<TenderNotice>
+
+  if (!response.ok || !responseData.ok) {
+    throw new Error(responseData.error || responseData.message || "Failed to create tender notice")
+  }
+
+  return responseData.data!
+}
+
+export async function updateAdminTenderNotice(id: number, payload: TenderNoticePayload): Promise<TenderNotice> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/tenders/${id}`, {
+    method: "PATCH",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  })
+
+  const responseData = (await response.json()) as ApiResponse<TenderNotice>
+
+  if (!response.ok || !responseData.ok) {
+    throw new Error(responseData.error || responseData.message || "Failed to update tender notice")
+  }
+
+  return responseData.data!
+}
+
+export async function deleteAdminTenderNotice(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/tenders/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  })
+
+  const responseData = (await response.json()) as ApiResponse<null>
+
+  if (!response.ok || !responseData.ok) {
+    throw new Error(responseData.error || responseData.message || "Failed to delete tender notice")
+  }
 }
 
 export type AdminItem = {
