@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { motion } from "framer-motion";
 import { Sheet } from "./ui/sheet";
 import { Button } from "./ui/button";
 import {
@@ -21,6 +22,17 @@ interface ProfileSheetProps {
 
 export default function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
   const { user, updateProfile } = useAuth();
+
+  useEffect(() => {
+    if (open) {
+      const prev = document.body.style.overflow
+      document.body.style.overflow = "hidden"
+      return () => {
+        document.body.style.overflow = prev
+      }
+    }
+    return
+  }, [open])
 
   const [name, setName] = useState(user?.name || "");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -110,20 +122,22 @@ export default function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) 
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
         {/* Backdrop */}
-        <div
-          className={`fixed inset-0 z-120 transition-all duration-300 ${
-            open ? "opacity-100 bg-black/20" : "opacity-0 pointer-events-none"
-          }`}
-          style={{ backdropFilter: open ? "blur(1px)" : "blur(0px)" }}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={open ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}
+          className={`fixed inset-0 z-120 ${open ? '' : 'pointer-events-none'}`}
+          style={{ background: open ? 'rgba(0,0,0,0.18)' : 'transparent', backdropFilter: open ? 'blur(1px)' : 'blur(0px)', willChange: 'opacity, backdrop-filter' }}
           onClick={() => onOpenChange(false)}
         />
 
         {/* Panel */}
-        <div
-          className={`fixed right-0 top-0 bottom-0 z-130 w-full max-w-105 transition-transform duration-300 ease-out ${
-            open ? "translate-x-0" : "translate-x-full"
-          }`}
-          style={{ background: "#FAFAF9" }}
+        <motion.div
+          initial={{ x: '100%', opacity: 0 }}
+          animate={open ? { x: 0, opacity: 1 } : { x: '100%', opacity: 0 }}
+          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+          className="fixed right-0 top-0 bottom-0 z-130 w-full max-w-105"
+          style={{ background: "#FAFAF9", willChange: 'transform, opacity' }}
         >
           <div className="flex flex-col h-full">
 
@@ -412,7 +426,7 @@ export default function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) 
               </form>
             </div>
           </div>
-        </div>
+        </motion.div>
       </Sheet>
 
       {/* Success Dialog */}

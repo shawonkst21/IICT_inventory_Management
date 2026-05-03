@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
+import { AnimatePresence } from "framer-motion"
 import {
   AlertCircle,
   CalendarClock,
@@ -40,6 +41,7 @@ import {
 } from "@/components/ui/hover-card"
 
 import { fetchItemRequests, type ItemRequestRecord } from "../../../../lib/api"
+import ContentTransition from "@/components/ContentTransition"
 
 /* ---------- Utils ---------- */
 
@@ -237,6 +239,7 @@ function RequestTable({
 export default function ItemRequestHistoryPage() {
   const searchParams = useSearchParams()
   const [requests, setRequests] = useState<ItemRequestRecord[]>([])
+  const [activeTab, setActiveTab] = useState<'current' | 'previous'>('current')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
@@ -268,6 +271,16 @@ export default function ItemRequestHistoryPage() {
     () => requests.filter((r) => !isSameDay(r.requested_at, today)),
     [requests, today]
   )
+
+  const displayRequests =
+    activeTab === 'current' ? todaysRequests : historyRequests
+
+  const activeTitle = activeTab === 'current' ? "Current History" : "Previous History"
+  const activeDescription =
+    activeTab === 'current'
+      ? "Requests submitted today"
+      : "Requests submitted before today"
+  const activeIcon = activeTab === 'current' ? CalendarClock : History
 
   return (
     <div className="min-h-screen w-full bg-[#F7F6F3] px-8 py-8 font-['DM_Sans',sans-serif]">
@@ -309,7 +322,7 @@ export default function ItemRequestHistoryPage() {
           </h1>
 
           <p className="text-sm text-[#9A9690] max-w-md">
-            Track today&apos;s requests and review past submissions in one place.
+            Switch between the current day&apos;s requests and the previous request history.
           </p>
         </div>
 
@@ -341,20 +354,40 @@ export default function ItemRequestHistoryPage() {
           {error}
         </div>
       ) : (
-        <div className="space-y-8">
-          <RequestTable
-            title="Today's Requests"
-            description="Submitted today"
-            icon={CalendarClock}
-            requests={todaysRequests}
-          />
+        <div>
+          <div className="mb-6 flex gap-4 border-b border-[#E8E5DF]">
+            <button
+              onClick={() => setActiveTab('current')}
+              className={`pb-3 px-4 font-medium transition ${
+                activeTab === 'current'
+                  ? 'border-b-2 border-[#1A1916] text-[#1A1916]'
+                  : 'text-[#9A9690] hover:text-[#1A1916]'
+              }`}
+            >
+              Current ({todaysRequests.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('previous')}
+              className={`pb-3 px-4 font-medium transition ${
+                activeTab === 'previous'
+                  ? 'border-b-2 border-[#1A1916] text-[#1A1916]'
+                  : 'text-[#9A9690] hover:text-[#1A1916]'
+              }`}
+            >
+              Previous ({historyRequests.length})
+            </button>
+          </div>
 
-          <RequestTable
-            title="Request History"
-            description="Older submissions"
-            icon={History}
-            requests={historyRequests}
-          />
+          <AnimatePresence mode="wait">
+            <ContentTransition key={activeTab}>
+              <RequestTable
+                title={activeTitle}
+                description={activeDescription}
+                icon={activeIcon}
+                requests={displayRequests}
+              />
+            </ContentTransition>
+          </AnimatePresence>
         </div>
       )}
     </div>

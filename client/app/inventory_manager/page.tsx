@@ -13,6 +13,10 @@ import {
   Truck,
   Warehouse,
   Sparkles,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
 } from "lucide-react"
 import {
   Bar,
@@ -20,7 +24,13 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
+  Pie,
+  PieChart,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
 } from "recharts"
+import { motion } from "framer-motion"
 
 import {
   Breadcrumb,
@@ -30,11 +40,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../../components/ui/Breadcrumb"
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
 import {
   fetchItemReceipts,
   fetchItemRequests,
@@ -71,18 +76,18 @@ const quickLinks = [
   },
 ]
 
-const stockChartConfig = {
-  count: {
-    label: "Items",
-    color: "#1A1916",
-  },
+// Colors for pie/donut charts
+const STOCK_STATUS_COLORS = {
+  available: "#10b981", // emerald
+  low: "#f59e0b", // amber
+  not_available: "#ef4444", // red
 }
 
-const requestChartConfig = {
-  count: {
-    label: "Requests",
-    color: "#5A5650",
-  },
+const REQUEST_STATUS_COLORS = {
+  pending: "#f59e0b", // amber
+  approved: "#8b5cf6", // violet
+  issued: "#3b82f6", // blue
+  rejected: "#ef4444", // red
 }
 
 function formatDate(value: string) {
@@ -190,14 +195,17 @@ export default function Page() {
       {
         status: "Available",
         count: stockLevels.filter((item) => item.stock_status === "available").length,
+        value: "available",
       },
       {
         status: "Low",
         count: stockLevels.filter((item) => item.stock_status === "low").length,
+        value: "low",
       },
       {
         status: "Out",
         count: stockLevels.filter((item) => item.stock_status === "not_available").length,
+        value: "not_available",
       },
     ],
     [stockLevels],
@@ -208,27 +216,65 @@ export default function Page() {
       {
         status: "Pending",
         count: requests.filter((item) => item.status === "pending").length,
+        value: "pending",
       },
       {
         status: "Approved",
         count: requests.filter((item) => item.status === "approved").length,
+        value: "approved",
       },
       {
         status: "Issued",
         count: requests.filter((item) => item.status === "issued").length,
+        value: "issued",
       },
       {
         status: "Rejected",
         count: requests.filter((item) => item.status === "rejected").length,
+        value: "rejected",
       },
     ],
     [requests],
   )
 
+  // Top categories by stock quantity
+  const topCategories = useMemo(() => {
+    const categories: Record<string, number> = {}
+    stockLevels.forEach((item) => {
+      const cat = item.category_name || "Uncategorized"
+      categories[cat] = (categories[cat] || 0) + item.quantity
+    })
+    return Object.entries(categories)
+      .map(([name, quantity]) => ({ name, quantity }))
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 6)
+  }, [stockLevels])
+
   const pendingRequests = requests.filter((item) => item.status === "pending").length
   const approvedRequests = requests.filter((item) => item.status === "approved").length
   const issuedRequests = requests.filter((item) => item.status === "issued").length
   const lowStockCount = stockLevels.filter((item) => item.stock_status === "low").length
+  const outOfStockCount = stockLevels.filter((item) => item.stock_status === "not_available").length
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4 },
+    },
+  }
 
   return (
     <div className="space-y-6 text-[#1A1916]">
@@ -244,7 +290,11 @@ export default function Page() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <section className="relative overflow-hidden rounded-3xl border border-[#E8E5DF] bg-[linear-gradient(135deg,#F7F6F3_0%,#FFFFFF_56%,#EEF2FF_100%)] p-6 shadow-sm lg:p-8">
+      <motion.section 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl border border-[#E8E5DF] bg-[linear-gradient(135deg,#F7F6F3_0%,#FFFFFF_56%,#EEF2FF_100%)] p-6 shadow-sm lg:p-8"
+      >
         <div className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-[#1A1916]/5 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-12 left-1/3 h-40 w-40 rounded-full bg-[#C7D2FE]/40 blur-3xl" />
 
@@ -262,124 +312,253 @@ export default function Page() {
             </h1>
 
             <p className="mt-4 max-w-2xl text-sm leading-6 text-[#5A5650] lg:text-base">
-              Monitor the inventory route from one place. The overview below brings together stock health,
-              request flow, and supplier receipts so managers can move from review to action quickly.
+              Monitor the inventory route from one place. Advanced analytics and visualizations bring together stock health,
+              request flow, and supplier receipts for faster decision-making.
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:min-w-105">
-            <div className="rounded-2xl border border-[#E8E5DF] bg-white/85 p-4 shadow-sm backdrop-blur">
+            <motion.div 
+              whileHover={{ y: -4 }}
+              className="rounded-2xl border border-[#E8E5DF] bg-white/85 p-4 shadow-sm backdrop-blur"
+            >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9A9690]">Live items</p>
               <div className="mt-3 flex items-end justify-between gap-3">
                 <p className="text-3xl font-semibold text-[#1A1916]">{stockLevels.length}</p>
                 <Boxes className="h-5 w-5 text-[#1A1916]" />
               </div>
-            </div>
+            </motion.div>
 
-            <div className="rounded-2xl border border-[#E8E5DF] bg-white/85 p-4 shadow-sm backdrop-blur">
+            <motion.div 
+              whileHover={{ y: -4 }}
+              className="rounded-2xl border border-[#E8E5DF] bg-white/85 p-4 shadow-sm backdrop-blur"
+            >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9A9690]">Pending requests</p>
               <div className="mt-3 flex items-end justify-between gap-3">
                 <p className="text-3xl font-semibold text-[#1A1916]">{pendingRequests}</p>
                 <ClipboardList className="h-5 w-5 text-[#1A1916]" />
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Total SKUs"
-          value={stockLevels.length}
-          description="Tracked inventory records"
-          icon={Boxes}
-        />
-        <MetricCard
-          label="Stock units"
-          value={totalStockUnits}
-          description="Physical quantity on hand"
-          icon={PackageCheck}
-        />
-        <MetricCard
-          label="Low stock"
-          value={lowStockCount}
-          description="Items below threshold"
-          icon={Sparkles}
-        />
-        <MetricCard
-          label="Categories"
-          value={categoryCount}
-          description="Distinct inventory groups"
-          icon={Warehouse}
-        />
-      </div>
+      {/* Enhanced KPI Cards */}
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+      >
+        <motion.div variants={itemVariants}>
+          <EnhancedMetricCard
+            label="Total SKUs"
+            value={stockLevels.length}
+            description="Tracked inventory records"
+            icon={Boxes}
+            trend={5}
+            color="from-blue-50 to-blue-100"
+          />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <EnhancedMetricCard
+            label="Stock units"
+            value={totalStockUnits}
+            description="Physical quantity on hand"
+            icon={PackageCheck}
+            trend={12}
+            color="from-emerald-50 to-emerald-100"
+          />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <EnhancedMetricCard
+            label="Low stock"
+            value={lowStockCount}
+            description="Items below threshold"
+            icon={AlertTriangle}
+            trend={-3}
+            color="from-amber-50 to-amber-100"
+            alert
+          />
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <EnhancedMetricCard
+            label="Categories"
+            value={categoryCount}
+            description="Distinct inventory groups"
+            icon={Warehouse}
+            trend={2}
+            color="from-purple-50 to-purple-100"
+          />
+        </motion.div>
+      </motion.div>
 
       {loading ? (
-        <div className="flex items-center justify-center rounded-3xl border border-[#E8E5DF] bg-white p-10 shadow-sm">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-center rounded-3xl border border-[#E8E5DF] bg-white p-10 shadow-sm"
+        >
           <Loader2 className="mr-2 h-5 w-5 animate-spin text-[#1A1916]" />
           Loading inventory dashboard...
-        </div>
+        </motion.div>
       ) : error ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+        >
           <AlertCircle className="mt-0.5 h-4 w-4" />
           <span>{error}</span>
-        </div>
+        </motion.div>
       ) : null}
 
       {!loading && !error ? (
-        <>
-          <section className="grid gap-6 xl:grid-cols-2">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-6"
+        >
+          {/* Primary Charts Section */}
+          <motion.section variants={itemVariants} className="grid gap-6 xl:grid-cols-2">
+            {/* Stock Status Pie Chart */}
             <div className="rounded-3xl border border-[#E8E5DF] bg-white p-6 shadow-sm">
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-[#1A1916]">Stock health</h2>
-                  <p className="mt-1 text-sm text-[#9A9690]">How the catalog is distributed by availability.</p>
+                  <h2 className="text-lg font-semibold text-[#1A1916]">Stock status distribution</h2>
+                  <p className="mt-1 text-sm text-[#9A9690]">Inventory health overview by availability.</p>
                 </div>
-                <span className="rounded-full bg-[#ECEAE5] px-3 py-1 text-xs font-medium text-[#5A5650]">
-                  Overview
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                  {stockChartData.reduce((sum, item) => sum + item.count, 0)} items
                 </span>
               </div>
 
-              <ChartContainer config={stockChartConfig} className="h-70 w-full">
-                <BarChart data={stockChartData} margin={{ left: 0, right: 12, top: 8 }}>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E8E5DF" />
-                  <XAxis dataKey="status" tickLine={false} axisLine={false} tickMargin={12} />
-                  <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
-                  <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-                  <Bar dataKey="count" fill="#1A1916" radius={8} barSize={36} />
-                </BarChart>
-              </ChartContainer>
+              <div className="flex flex-col items-center justify-center">
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={stockChartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={2}
+                      dataKey="count"
+                    >
+                      {stockChartData.map((entry) => (
+                        <Cell 
+                          key={`cell-${entry.value}`} 
+                          fill={STOCK_STATUS_COLORS[entry.value as keyof typeof STOCK_STATUS_COLORS]}
+                        />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-4 grid grid-cols-3 gap-4 text-center text-sm">
+                  {stockChartData.map((item) => (
+                    <div key={item.status}>
+                      <div 
+                        className="mx-auto mb-2 h-3 w-3 rounded-full"
+                        style={{ backgroundColor: STOCK_STATUS_COLORS[item.value as keyof typeof STOCK_STATUS_COLORS] }}
+                      />
+                      <p className="text-xs font-medium text-[#9A9690]">{item.status}</p>
+                      <p className="font-semibold text-[#1A1916]">{item.count}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
+            {/* Request Pipeline Pie Chart */}
             <div className="rounded-3xl border border-[#E8E5DF] bg-white p-6 shadow-sm">
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-[#1A1916]">Request flow</h2>
-                  <p className="mt-1 text-sm text-[#9A9690]">Current approval state across the request pipeline.</p>
+                  <h2 className="text-lg font-semibold text-[#1A1916]">Request pipeline</h2>
+                  <p className="mt-1 text-sm text-[#9A9690]">Approval state distribution across requests.</p>
                 </div>
-                <span className="rounded-full bg-[#ECEAE5] px-3 py-1 text-xs font-medium text-[#5A5650]">
-                  Live queue
+                <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-medium text-violet-700">
+                  {requestChartData.reduce((sum, item) => sum + item.count, 0)} total
                 </span>
               </div>
 
-              <ChartContainer config={requestChartConfig} className="h-70 w-full">
-                <BarChart data={requestChartData} margin={{ left: 0, right: 12, top: 8 }}>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E8E5DF" />
-                  <XAxis dataKey="status" tickLine={false} axisLine={false} tickMargin={12} />
-                  <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
-                  <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-                  <Bar dataKey="count" fill="#5A5650" radius={8} barSize={36} />
-                </BarChart>
-              </ChartContainer>
+              <div className="flex flex-col gap-6">
+                {requestChartData.map((item) => {
+                  const totalCount = requestChartData.reduce((sum, i) => sum + i.count, 0)
+                  const percentage = totalCount > 0 ? Math.round((item.count / totalCount) * 100) : 0
+                  
+                  return (
+                    <div key={item.status} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-[#9A9690]">{item.status}</p>
+                        <p className="text-sm font-semibold text-[#1A1916]">{percentage}%</p>
+                      </div>
+                      <div className="h-3 w-full overflow-hidden rounded-full bg-[#E8E5DF]">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${percentage}%`,
+                            backgroundColor: REQUEST_STATUS_COLORS[item.value as keyof typeof REQUEST_STATUS_COLORS],
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs text-[#9A9690]">{item.count} requests</p>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-          </section>
+          </motion.section>
 
-          <section className="grid gap-6 xl:grid-cols-2">
+          {/* Category Distribution Bar Chart */}
+          <motion.div variants={itemVariants} className="rounded-3xl border border-[#E8E5DF] bg-white p-6 shadow-sm">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-[#1A1916]">Top categories by stock</h2>
+                <p className="mt-1 text-sm text-[#9A9690]">Inventory distribution across top categories.</p>
+              </div>
+              <span className="rounded-full bg-[#ECEAE5] px-3 py-1 text-xs font-medium text-[#5A5650]">
+                Top 6 categories
+              </span>
+            </div>
+
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={topCategories} margin={{ left: 0, right: 12, top: 8, bottom: 60 }}>
+                <defs>
+                  <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#7c3aed" stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.3}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E8E5DF" />
+                <XAxis 
+                  dataKey="name" 
+                  tickLine={false} 
+                  axisLine={false} 
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                />
+                <YAxis tickLine={false} axisLine={false} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: "#fff", 
+                    border: "1px solid #E8E5DF",
+                    borderRadius: "8px"
+                  }}
+                />
+                <Bar dataKey="quantity" fill="url(#colorGradient)" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </motion.div>
+
+          {/* Secondary Section: Quick Access + Low Stock */}
+          <motion.section variants={itemVariants} className="grid gap-6 xl:grid-cols-2">
             <div className="rounded-3xl border border-[#E8E5DF] bg-white p-6 shadow-sm">
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-semibold text-[#1A1916]">Quick access</h2>
-                  <p className="mt-1 text-sm text-[#9A9690]">Jump straight into the most common manager workflows.</p>
+                  <p className="mt-1 text-sm text-[#9A9690]">Jump straight into common manager workflows.</p>
                 </div>
                 <RefreshCcw className="h-4 w-4 text-[#9A9690]" />
               </div>
@@ -389,24 +568,27 @@ export default function Page() {
                   const Icon = link.icon
 
                   return (
-                    <Link
+                    <motion.div
                       key={link.href}
-                      href={link.href}
-                      className="group rounded-2xl border border-[#E8E5DF] bg-[#FAFAF8] p-4 transition hover:-translate-y-0.5 hover:border-[#D7D2C8] hover:bg-white"
+                      whileHover={{ y: -4 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-3">
+                      <Link
+                        href={link.href}
+                        className="group flex h-full rounded-2xl border border-[#E8E5DF] bg-[#FAFAF8] p-4 transition hover:border-[#D7D2C8] hover:bg-white"
+                      >
+                        <div className="flex flex-col gap-3">
                           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1A1916] text-white">
                             <Icon className="h-5 w-5" />
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <h3 className="font-semibold text-[#1A1916]">{link.title}</h3>
-                            <p className="mt-1 text-sm leading-5 text-[#5A5650]">{link.description}</p>
+                            <p className="mt-1 text-xs leading-4 text-[#5A5650]">{link.description}</p>
                           </div>
+                          <ArrowUpRight className="h-4 w-4 text-[#9A9690] transition group-hover:text-[#1A1916]" />
                         </div>
-                        <ArrowUpRight className="h-4 w-4 text-[#9A9690] transition group-hover:text-[#1A1916]" />
-                      </div>
-                    </Link>
+                      </Link>
+                    </motion.div>
                   )
                 })}
               </div>
@@ -415,49 +597,129 @@ export default function Page() {
             <div className="rounded-3xl border border-[#E8E5DF] bg-white p-6 shadow-sm">
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-[#1A1916]">Low stock watchlist</h2>
-                  <p className="mt-1 text-sm text-[#9A9690]">Items needing replenishment or attention.</p>
+                  <h2 className="text-lg font-semibold text-[#1A1916]">Alert summary</h2>
+                  <p className="mt-1 text-sm text-[#9A9690]">Items requiring immediate attention.</p>
                 </div>
                 <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-                  {lowStockItems.length} flagged
+                  {lowStockCount + outOfStockCount} flagged
                 </span>
               </div>
 
               <div className="space-y-3">
-                {lowStockItems.length > 0 ? (
-                  lowStockItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between gap-4 rounded-2xl border border-[#E8E5DF] bg-[#FAFAF8] px-4 py-3"
-                    >
-                      <div>
+                <motion.div
+                  whileHover={{ x: 4 }}
+                  className="flex items-center justify-between gap-4 rounded-2xl bg-amber-50 px-4 py-4 border border-amber-200"
+                >
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    <div>
+                      <p className="font-semibold text-amber-900">Low Stock Items</p>
+                      <p className="text-sm text-amber-700">{lowStockCount} items below threshold</p>
+                    </div>
+                  </div>
+                  <span className="text-2xl font-bold text-amber-600">{lowStockCount}</span>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ x: 4 }}
+                  className="flex items-center justify-between gap-4 rounded-2xl bg-rose-50 px-4 py-4 border border-rose-200"
+                >
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="h-5 w-5 text-rose-600" />
+                    <div>
+                      <p className="font-semibold text-rose-900">Out of Stock</p>
+                      <p className="text-sm text-rose-700">{outOfStockCount} items unavailable</p>
+                    </div>
+                  </div>
+                  <span className="text-2xl font-bold text-rose-600">{outOfStockCount}</span>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ x: 4 }}
+                  className="flex items-center justify-between gap-4 rounded-2xl bg-emerald-50 px-4 py-4 border border-emerald-200"
+                >
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                    <div>
+                      <p className="font-semibold text-emerald-900">Available Stock</p>
+                      <p className="text-sm text-emerald-700">{stockLevels.filter(i => i.stock_status === "available").length} items in stock</p>
+                    </div>
+                  </div>
+                  <span className="text-2xl font-bold text-emerald-600">
+                    {stockLevels.filter(i => i.stock_status === "available").length}
+                  </span>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ x: 4 }}
+                  className="flex items-center justify-between gap-4 rounded-2xl bg-violet-50 px-4 py-4 border border-violet-200"
+                >
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-violet-600" />
+                    <div>
+                      <p className="font-semibold text-violet-900">Pending Requests</p>
+                      <p className="text-sm text-violet-700">{pendingRequests} awaiting review</p>
+                    </div>
+                  </div>
+                  <span className="text-2xl font-bold text-violet-600">{pendingRequests}</span>
+                </motion.div>
+              </div>
+            </div>
+          </motion.section>
+
+          {/* Low Stock Details */}
+          <motion.section variants={itemVariants} className="rounded-3xl border border-[#E8E5DF] bg-white p-6 shadow-sm">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-[#1A1916]">Low stock watchlist</h2>
+                <p className="mt-1 text-sm text-[#9A9690]">Items needing immediate replenishment.</p>
+              </div>
+              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+                {lowStockItems.length} flagged
+              </span>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              {lowStockItems.length > 0 ? (
+                lowStockItems.map((item, idx) => (
+                  <motion.div
+                    key={item.id}
+                    whileHover={{ y: -2 }}
+                    className="flex items-center justify-between gap-4 rounded-2xl border border-[#E8E5DF] bg-gradient-to-r from-amber-50/50 to-transparent px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100">
+                        <span className="text-lg font-bold text-amber-600">{idx + 1}</span>
+                      </div>
+                      <div className="flex-1">
                         <p className="font-semibold text-[#1A1916]">{item.item_name}</p>
                         <p className="text-xs text-[#9A9690]">
                           {item.category_name} · Threshold {item.low_stock_threshold}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-[#1A1916]">{formatQuantity(item.quantity)}</p>
-                        <span className={`mt-1 inline-flex rounded-full border px-3 py-1 text-xs font-medium ${statusTone(item.stock_status)}`}>
-                          {labelStatus(item.stock_status)}
-                        </span>
-                      </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-[#D7D2C8] bg-[#FAFAF8] p-6 text-center text-sm text-[#9A9690]">
-                    No low stock items right now.
-                  </div>
-                )}
-              </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-[#1A1916]">{formatQuantity(item.quantity)}</p>
+                      <span className={`mt-1 inline-flex rounded-full border px-3 py-1 text-xs font-medium ${statusTone(item.stock_status)}`}>
+                        {labelStatus(item.stock_status)}
+                      </span>
+                    </div>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-[#D7D2C8] bg-[#FAFAF8] p-6 text-center text-sm text-[#9A9690] lg:col-span-2">
+                  No low stock items right now. Great job keeping inventory levels healthy!
+                </div>
+              )}
             </div>
-          </section>
+          </motion.section>
 
-          <section className="rounded-3xl border border-[#E8E5DF] bg-white p-6 shadow-sm">
+          {/* Recent Receipts */}
+          <motion.section variants={itemVariants} className="rounded-3xl border border-[#E8E5DF] bg-white p-6 shadow-sm">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-[#1A1916]">Recent receipts</h2>
-                <p className="mt-1 text-sm text-[#9A9690]">Most recent supplier entries recorded in the system.</p>
+                <p className="mt-1 text-sm text-[#9A9690]">Latest supplier entries recorded in the system.</p>
               </div>
               <span className="rounded-full bg-[#ECEAE5] px-3 py-1 text-xs font-medium text-[#5A5650]">
                 {approvedRequests} approved · {issuedRequests} issued
@@ -467,12 +729,13 @@ export default function Page() {
             <div className="grid gap-3 lg:grid-cols-2">
               {recentReceipts.length > 0 ? (
                 recentReceipts.map((receipt) => (
-                  <div
+                  <motion.div
                     key={receipt.id}
-                    className="rounded-2xl border border-[#E8E5DF] bg-[#FAFAF8] p-4"
+                    whileHover={{ y: -4 }}
+                    className="rounded-2xl border border-[#E8E5DF] bg-gradient-to-br from-blue-50/30 to-transparent p-4"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <div>
+                      <div className="flex-1">
                         <p className="font-semibold text-[#1A1916]">{receipt.item_name}</p>
                         <p className="mt-1 text-xs text-[#9A9690]">
                           {receipt.category_name || "Uncategorized"} · {receipt.supplier_name}
@@ -483,17 +746,17 @@ export default function Page() {
                       </span>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-[#5A5650]">
-                      <div>
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <div className="rounded-lg bg-white/60 p-3">
                         <p className="text-xs uppercase tracking-[0.18em] text-[#9A9690]">Quantity</p>
                         <p className="mt-1 font-semibold text-[#1A1916]">{formatQuantity(receipt.quantity_received)}</p>
                       </div>
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.18em] text-[#9A9690]">Receipt date</p>
+                      <div className="rounded-lg bg-white/60 p-3">
+                        <p className="text-xs uppercase tracking-[0.18em] text-[#9A9690]">Date</p>
                         <p className="mt-1 font-semibold text-[#1A1916]">{formatDate(receipt.receipt_date)}</p>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))
               ) : (
                 <div className="rounded-2xl border border-dashed border-[#D7D2C8] bg-[#FAFAF8] p-6 text-center text-sm text-[#9A9690] lg:col-span-2">
@@ -501,36 +764,75 @@ export default function Page() {
                 </div>
               )}
             </div>
-          </section>
-        </>
+          </motion.section>
+        </motion.div>
       ) : null}
     </div>
   )
 }
 
-function MetricCard({
+function EnhancedMetricCard({
   label,
   value,
   description,
   icon: Icon,
+  trend,
+  color,
+  alert,
 }: {
   label: string
   value: number
   description: string
   icon: ComponentType<{ className?: string }>
+  trend?: number
+  color?: string
+  alert?: boolean
 }) {
   return (
-    <div className="rounded-2xl border border-[#E8E5DF] bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div>
+    <motion.div
+      whileHover={{ y: -4 }}
+      className={`rounded-2xl border border-[#E8E5DF] bg-gradient-to-br ${color || "from-slate-50 to-slate-100"} p-5 shadow-sm overflow-hidden relative`}
+    >
+      {/* Background glow */}
+      <div className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/40 blur-2xl" />
+      
+      <div className="relative flex items-start justify-between gap-4">
+        <div className="flex-1">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9A9690]">{label}</p>
           <p className="mt-3 text-3xl font-semibold text-[#1A1916]">{value}</p>
           <p className="mt-1 text-sm text-[#5A5650]">{description}</p>
+          
+          {trend !== undefined && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-3 flex items-center gap-1"
+            >
+              {trend > 0 ? (
+                <>
+                  <TrendingUp className="h-4 w-4 text-emerald-600" />
+                  <span className="text-xs font-medium text-emerald-600">
+                    +{trend}% from last week
+                  </span>
+                </>
+              ) : trend < 0 ? (
+                <>
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <span className="text-xs font-medium text-amber-600">
+                    {trend}% from last week
+                  </span>
+                </>
+              ) : null}
+            </motion.div>
+          )}
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1A1916] text-white">
-          <Icon className="h-5 w-5" />
-        </div>
+        <motion.div 
+          whileHover={{ rotate: 10, scale: 1.1 }}
+          className={`flex h-12 w-12 items-center justify-center rounded-xl ${alert ? "bg-amber-100 text-amber-600" : "bg-[#1A1916] text-white"}`}
+        >
+          <Icon className="h-6 w-6" />
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   )
 }

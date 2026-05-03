@@ -28,15 +28,8 @@ export default function StockPage() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <h1 className="text-2xl font-semibold mb-2 mt-6 text-slate-900">
-        <span className="bg-gradient-to-r from-[#923FEF] to-[#C35DE8] bg-clip-text text-transparent">
-          Stock
-        </span>
-        {" "}Levels
-      </h1>
-      <p className="text-slate-600 mb-6">Monitor and manage inventory stock levels</p>
 
-      <StockLevel />
+      <StockLevel  />
     </>
   )
 }

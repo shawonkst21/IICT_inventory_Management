@@ -11,13 +11,7 @@ import InventoryRequestBoard from "../../../components/InventoryRequestBoard"
 
 export default function RequestsPage() {
   return (
-    <div
-      className="min-h-screen bg-slate-50 p-8"
-      style={{
-        backgroundImage:
-          "radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)",
-      }}
-    >
+    <div className="min-h-screen w-full bg-[#F7F6F3] px-8 py-8 font-['DM_Sans',sans-serif]">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -34,17 +28,18 @@ export default function RequestsPage() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="mt-8 space-y-3">
-        <div className="flex items-center gap-3">
-          <ClipboardList className="h-8 w-8 text-slate-900" />
-          <h1 className="text-3xl font-bold text-slate-900">Request Review</h1>
+      <div className="mb-8 mt-8">
+        <div className="inline-flex items-center gap-2 rounded-full bg-[#ECEAE5] px-3 py-1 mb-4">
+          <ClipboardList className="w-3.5 h-3.5 text-[#5A5650]" />
+          <span className="text-xs font-medium text-[#5A5650] uppercase tracking-wide">Inventory</span>
         </div>
-        <p className="max-w-3xl text-sm text-slate-700">
+        <h1 className="text-4xl font-semibold tracking-tight text-[#1A1916] leading-none mb-2">Request Review</h1>
+        <p className="max-w-3xl text-sm text-[#9A9690]">
           Review every item request in one place, approve or reject pending items, and move approved requests into issuance.
         </p>
       </div>
 
-      <div className="mt-8">
+      <div>
         <InventoryRequestBoard mode="review" />
       </div>
     </div>

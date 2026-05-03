@@ -1,7 +1,8 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Search, X } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { Search, X, History } from "lucide-react"
 import { fetchStockLevels, fetchCategories, type StockLevelItem, type Category } from "@/lib/api"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
@@ -91,9 +92,39 @@ export default function StockLevel() {
   }
 
   return (
-    <div className="space-y-6 text-black">
-      {/* Search and Filter Section */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-lg border border-slate-200">
+    <AnimatePresence>
+      <motion.div
+        key="stocklevel"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -6 }}
+        transition={{ duration: 0.45 }}
+        className="space-y-6 text-black"
+      >
+        {/* Header */}
+        <div className="mb-8 mt-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#ECEAE5] px-3 py-1">
+              <History className="h-3.5 w-3.5 text-[#5A5650]" />
+              <span className="text-xs font-medium uppercase text-[#5A5650]">Inventory</span>
+            </div>
+
+            <h1 className="mb-2 text-4xl font-semibold text-[#1A1916]">Stock Inventory</h1>
+
+            <p className="max-w-xl text-sm text-[#9A9690]">
+              View and filter current stock levels across categories and statuses.
+            </p>
+          </div>
+        </div>
+
+        {/* Search and Filter Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.45 }}
+          className="grid grid-cols-1 md:grid-cols-4 gap-4 rounded-2xl border border-[#E8E5DF] bg-white p-6 shadow-sm"
+        >
         {/* Item Name Search */}
         <div className="flex flex-col">
           <label className="text-sm font-medium text-black mb-2">Item Name</label>
@@ -181,16 +212,22 @@ export default function StockLevel() {
             Clear Filters
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Items Table Section */}
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-        <div className="p-6 border-b border-slate-200">
-          <h2 className="text-lg font-semibold text-black">Stock Inventory</h2>
-          <p className="text-sm text-black mt-1">
-            {filteredItems.length} item{filteredItems.length !== 1 ? "s" : ""} found
-          </p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          transition={{ duration: 0.45 }}
+          className="overflow-hidden rounded-2xl border border-[#E8E5DF] bg-white shadow-sm"
+        >
+          <div className="p-6 border-b border-[#E8E5DF]">
+            <h2 className="text-lg font-semibold text-[#1A1916]">Stock Inventory</h2>
+            <p className="text-sm text-[#9A9690] mt-1">
+              {filteredItems.length} item{filteredItems.length !== 1 ? "s" : ""} found
+            </p>
+          </div>
 
         {error && (
           <div className="m-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
@@ -205,32 +242,35 @@ export default function StockLevel() {
             No items found. Try adjusting your search criteria.
           </div>
         ) : (
-          <Table>
+          <div className={filteredItems.length > 5 ? "max-h-screen overflow-y-auto" : ""}>
+            <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="font-semibold text-black">Item Name</TableHead>
-                <TableHead className="font-semibold text-black">Category</TableHead>
-                <TableHead className="font-semibold text-black">Quantity</TableHead>
-                <TableHead className="font-semibold text-black">Unit</TableHead>
-                <TableHead className="font-semibold text-black">Threshold</TableHead>
-                <TableHead className="font-semibold text-black">Status</TableHead>
+                <TableHead className="text-[#5A5650]">Item Name</TableHead>
+                <TableHead className="text-[#5A5650]">Category</TableHead>
+                <TableHead className="text-[#5A5650]">Quantity</TableHead>
+                <TableHead className="text-[#5A5650]">Unit</TableHead>
+                <TableHead className="text-[#5A5650]">Threshold</TableHead>
+                <TableHead className="text-[#5A5650]">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredItems.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium text-black">{item.item_name}</TableCell>
-                  <TableCell className="text-black">{item.category_name || "—"}</TableCell>
-                  <TableCell className="text-black">{item.quantity}</TableCell>
-                  <TableCell className="text-black">{item.unit}</TableCell>
-                  <TableCell className="text-black">{item.low_stock_threshold}</TableCell>
+                  <TableCell className="font-medium text-[#1A1916]">{item.item_name}</TableCell>
+                  <TableCell className="text-[#1A1916]">{item.category_name || "—"}</TableCell>
+                  <TableCell className="text-[#1A1916]">{item.quantity}</TableCell>
+                  <TableCell className="text-[#1A1916]">{item.unit}</TableCell>
+                  <TableCell className="text-[#1A1916]">{item.low_stock_threshold}</TableCell>
                   <TableCell>{getStatusBadge(item.stock_status)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
+    </AnimatePresence>
   )
 }

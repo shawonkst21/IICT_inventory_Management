@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   Bell,
   FileText,
@@ -91,7 +92,9 @@ export default function StafSidebar() {
     const openMenu = openSub[item.title] || subActive;
 
     const button = (
-      <button
+      <motion.button
+        whileHover={{ x: 2 }}
+        whileTap={{ scale: 0.98 }}
         onClick={() => {
           if (hasSub) toggle(item.title);
           else window.location.href = item.url;
@@ -114,14 +117,19 @@ export default function StafSidebar() {
               collapsed ? collapsedLabel : expandedLabel
             }`}
           >
-            {openMenu ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
+            <motion.div
+              animate={{ rotate: openMenu ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {openMenu ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </motion.div>
           </span>
         ) : null}
-      </button>
+      </motion.button>
     );
 
     return (
@@ -136,21 +144,33 @@ export default function StafSidebar() {
         )}
 
         {!collapsed && hasSub && openMenu && (
-          <div className="ml-7 mt-1 space-y-1 border-l border-slate-300 pl-3">
-            {item.subItems?.map((sub) => {
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="ml-7 mt-1 space-y-1 border-l border-slate-300 pl-3 overflow-hidden"
+          >
+            {item.subItems?.map((sub, idx) => {
               const subIsActive = pathname === sub.url;
 
               return (
-                <Link
+                <motion.div
                   key={sub.title}
-                  href={sub.url}
-                  className={`block ${base} ${subIsActive ? active : normal}`}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.05, duration: 0.2 }}
                 >
-                  <span className="text-sm">{sub.title}</span>
-                </Link>
+                  <Link
+                    href={sub.url}
+                    className={`block ${base} ${subIsActive ? active : normal}`}
+                  >
+                    <span className="text-sm">{sub.title}</span>
+                  </Link>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </div>
     );
@@ -186,11 +206,12 @@ export default function StafSidebar() {
             onClick={() => setCollapsed(!collapsed)}
             className="p-1.5 rounded-md hover:bg-slate-100 transition-transform duration-300 ease-in-out"
           >
-            <ChevronLeft
-              className={`h-4 w-4 text-black transition ${
-                collapsed ? "rotate-180" : ""
-              }`}
-            />
+            <motion.div
+              animate={{ rotate: collapsed ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ChevronLeft className="h-4 w-4 text-black" />
+            </motion.div>
           </button>
         </div>
       </div>
@@ -205,7 +226,11 @@ export default function StafSidebar() {
         <DropdownMenu>
           <div className={`flex ${collapsed ? "justify-center" : ""}`}>
             <DropdownMenuTrigger>
-              <button className="w-full hover:opacity-80 transition-opacity duration-300 ease-in-out">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full hover:opacity-80 transition-opacity duration-300 ease-in-out"
+              >
                 <div
                   className={`flex ${
                     collapsed
@@ -233,7 +258,7 @@ export default function StafSidebar() {
                     </p>
                   </div>
                 </div>
-              </button>
+              </motion.button>
             </DropdownMenuTrigger>
           </div>
 

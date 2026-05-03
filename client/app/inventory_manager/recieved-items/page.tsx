@@ -1,7 +1,8 @@
 "use client"
 
 import React, { useEffect, useMemo, useRef, useState } from "react"
-import { ChevronDown, PlusCircle, Save, Search, X } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { ChevronDown, ClipboardList, History, PlusCircle, Save, Search, X } from "lucide-react"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -48,6 +49,7 @@ export default function ReceivedItemsPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [items, setItems] = useState<ItemOption[]>([])
   const [receipts, setReceipts] = useState<ItemReceiptRecord[]>([])
+  const [activeTab, setActiveTab] = useState<"form" | "receipts">("form")
 
   const [selectedCategory, setSelectedCategory] = useState<number | "">("")
   const [selectedItemId, setSelectedItemId] = useState<number | "">("")
@@ -296,8 +298,9 @@ export default function ReceivedItemsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <Breadcrumb>
+    <div className="min-h-screen w-full bg-[#F7F6F3] px-3  font-['DM_Sans',sans-serif]">
+      <div className="mb-6">
+        <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink href="/">Home</BreadcrumbLink>
@@ -311,19 +314,61 @@ export default function ReceivedItemsPage() {
             <BreadcrumbPage>Received Items</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
-      </Breadcrumb>
-
-      <div>
-        <h1 className="text-2xl font-semibold text-black">Received Items Entry</h1>
-        <p className="text-sm text-black mt-1">
-          Record supplier deliveries into <span className="font-semibold">item_receipts</span> and auto-update item stock.
-        </p>
+        </Breadcrumb>
       </div>
 
-      {error && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
-      {success && <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{success}</div>}
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#ECEAE5] px-3 py-1">
+            <History className="h-3.5 w-3.5 text-[#5A5650]" />
+            <span className="text-xs font-medium uppercase text-[#5A5650]">Inventory</span>
+          </div>
+          <h1 className="mb-2 text-4xl font-semibold text-[#1A1916]">Received Items</h1>
+          <p className="max-w-xl text-sm text-[#9A9690]">
+          Record supplier deliveries into <span className="font-semibold">item_receipts</span> and auto-update item stock.
+          </p>
+        </div>
+      </div>
 
-      <form onSubmit={handleCreateReceipt} className="rounded-lg border border-slate-200 bg-white p-6 space-y-5">
+      <div className="mb-6 flex gap-4 border-b border-[#E8E5DF]">
+        <button
+          type="button"
+          onClick={() => setActiveTab("form")}
+          className={`pb-3 px-4 font-medium transition ${
+            activeTab === "form"
+              ? "border-b-2 border-[#1A1916] text-[#1A1916]"
+              : "text-[#9A9690] hover:text-[#1A1916]"
+          }`}
+        >
+          Receipt Form
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("receipts")}
+          className={`pb-3 px-4 font-medium transition ${
+            activeTab === "receipts"
+              ? "border-b-2 border-[#1A1916] text-[#1A1916]"
+              : "text-[#9A9690] hover:text-[#1A1916]"
+          }`}
+        >
+          Recent Receipts ({receipts.length})
+        </button>
+      </div>
+
+      {error && <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
+      {success && <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div>}
+
+      <AnimatePresence mode="wait">
+        {activeTab === "form" ? (
+        <motion.form
+          key="form"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.45 }}
+          onSubmit={handleCreateReceipt}
+          className="mb-6 space-y-5 rounded-2xl border border-[#E8E5DF] bg-white p-6 shadow-sm"
+        >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-black">Category</label>
@@ -504,7 +549,7 @@ export default function ReceivedItemsPage() {
           <button
             type="button"
             onClick={() => setShowCreateItem((value) => !value)}
-            className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-black hover:bg-slate-100"
+            className="inline-flex items-center gap-2 rounded-md border border-[#E8E5DF] bg-white px-4 py-2 text-sm font-medium text-[#1A1916] transition hover:bg-[#F7F6F3]"
           >
             <PlusCircle className="h-4 w-4" />
             Create Item
@@ -513,13 +558,74 @@ export default function ReceivedItemsPage() {
           <button
             type="submit"
             disabled={submittingReceipt}
-            className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md bg-[#1A1916] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#2D2B27] disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
             {submittingReceipt ? "Saving..." : "Save Receipt"}
           </button>
         </div>
-      </form>
+        </motion.form>
+      ) : (
+        <motion.div
+          key="receipts"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.45 }}
+          className="overflow-hidden rounded-2xl border border-[#E8E5DF] bg-white shadow-sm"
+        >
+        <div className="flex items-center justify-between border-b border-[#E8E5DF] px-6 py-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1A1916] text-white">
+              <ClipboardList className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[#1A1916]">Recent Receipts</h2>
+              <p className="text-xs text-[#9A9690]">Latest delivery entries and stock additions.</p>
+            </div>
+          </div>
+          <span className="text-xs font-medium text-[#9A9690]">{receipts.length} records</span>
+        </div>
+
+        {loading ? (
+          <div className="p-6 text-sm text-[#5A5650]">Loading receipts...</div>
+        ) : receipts.length === 0 ? (
+          <div className="p-6 text-sm text-[#5A5650]">No receipts recorded yet.</div>
+        ) : (
+          <div className={receipts.length > 5? "max-h-screen overflow-y-auto" : ""}>
+            <Table>
+              <TableHeader>
+                <TableRow className="sticky top-0 z-10 bg-[#FAFAF8]">
+                  <TableHead className="text-[#5A5650]">Date</TableHead>
+                  <TableHead className="text-[#5A5650]">Category</TableHead>
+                  <TableHead className="text-[#5A5650]">Item</TableHead>
+                  <TableHead className="text-[#5A5650]">Qty</TableHead>
+                  <TableHead className="text-[#5A5650]">Supplier</TableHead>
+                  <TableHead className="text-[#5A5650]">Challan</TableHead>
+                  <TableHead className="text-[#5A5650]">Quality</TableHead>
+                  <TableHead className="text-[#5A5650]">Bill</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {receipts.map((receipt) => (
+                  <TableRow key={receipt.id} className="transition hover:bg-[#F7F6F3]">
+                    <TableCell className="text-[#1A1916]">{String(receipt.receipt_date).slice(0, 10)}</TableCell>
+                    <TableCell className="text-[#1A1916]">{receipt.category_name || "-"}</TableCell>
+                    <TableCell className="font-medium text-[#1A1916]">{receipt.item_name}</TableCell>
+                    <TableCell className="text-[#1A1916]">{receipt.quantity_received}</TableCell>
+                    <TableCell className="text-[#1A1916]">{receipt.supplier_name}</TableCell>
+                    <TableCell className="text-[#1A1916]">{receipt.challan_no}</TableCell>
+                    <TableCell className="text-[#1A1916] capitalize">{receipt.quality_status}</TableCell>
+                    <TableCell className="text-[#1A1916] capitalize">{receipt.bill_status}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+        </motion.div>
+      )}
+      </AnimatePresence>
 
       <Sheet open={showCreateItem} onOpenChange={setShowCreateItem}>
         <SheetContent className="overflow-y-auto">
@@ -626,49 +732,6 @@ export default function ReceivedItemsPage() {
         </SheetContent>
       </Sheet>
 
-      <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
-        <div className="border-b border-slate-200 p-4">
-          <h2 className="text-lg font-semibold text-black">Recent Receipts</h2>
-          <p className="text-sm text-black mt-1">{receipts.length} receipt records</p>
-        </div>
-
-        {loading ? (
-          <div className="p-6 text-sm text-black">Loading receipts...</div>
-        ) : receipts.length === 0 ? (
-          <div className="p-6 text-sm text-black">No receipts recorded yet.</div>
-        ) : (
-          <div className="max-h-105 overflow-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-black">Date</TableHead>
-                  <TableHead className="text-black">Category</TableHead>
-                  <TableHead className="text-black">Item</TableHead>
-                  <TableHead className="text-black">Qty</TableHead>
-                  <TableHead className="text-black">Supplier</TableHead>
-                  <TableHead className="text-black">Challan</TableHead>
-                  <TableHead className="text-black">Quality</TableHead>
-                  <TableHead className="text-black">Bill</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {receipts.map((receipt) => (
-                  <TableRow key={receipt.id}>
-                    <TableCell className="text-black">{String(receipt.receipt_date).slice(0, 10)}</TableCell>
-                    <TableCell className="text-black">{receipt.category_name || "-"}</TableCell>
-                    <TableCell className="text-black">{receipt.item_name}</TableCell>
-                    <TableCell className="text-black">{receipt.quantity_received}</TableCell>
-                    <TableCell className="text-black">{receipt.supplier_name}</TableCell>
-                    <TableCell className="text-black">{receipt.challan_no}</TableCell>
-                    <TableCell className="text-black">{receipt.quality_status}</TableCell>
-                    <TableCell className="text-black">{receipt.bill_status}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </div>
     </div>
   )
 }

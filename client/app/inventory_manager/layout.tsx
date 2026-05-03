@@ -12,7 +12,7 @@ function InventoryLayout({ children }: { children: React.ReactNode }) {
     <div className="flex bg-white h-screen overflow-hidden">
       <Sidebar />
       <main
-        className="min-w-0 bg-white overflow-y-auto"
+        className="min-h-0 bg-white overflow-y-auto"
         style={{
           marginLeft: sidebarWidth,
           width: `calc(100% - ${sidebarWidth})`,
@@ -21,7 +21,7 @@ function InventoryLayout({ children }: { children: React.ReactNode }) {
           willChange: "margin-left, width",
         }}
       >
-        <div className="p-8">
+        <div className="p-8 bg-[#F7F6F3]">
           {children}
         </div>
       </main>

@@ -193,8 +193,8 @@ export default function UsersManagementPage() {
   }
 
   return (
-    <div className="bg-white rounded-lg p-6">
-      <h1 className="text-2xl font-bold mb-6">User Management</h1>
+    <div className="bg-[#ECEAE5] rounded-lg p-6">
+      <h1 className="text-2xl text-black font-bold mb-6">User Management</h1>
 
       {/* Tabs */}
       <div className="flex gap-4 mb-6 border-b">
