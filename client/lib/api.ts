@@ -195,6 +195,16 @@ export type Category = {
   description?: string | null
 }
 
+export type AdminUser = {
+  id: number
+  name: string
+  email: string
+  role: string | null
+  expected_role: string
+  status: string
+  created_at: string
+}
+
 export type StockLevelItem = {
   id: number
   item_name: string
@@ -223,6 +233,44 @@ export async function fetchCategories(): Promise<Category[]> {
   }
 
   return payload.data
+}
+
+export async function fetchAdminUsers(): Promise<AdminUser[]> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/admin/users`, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    throw new Error("Unable to fetch admin users")
+  }
+
+  const payload = (await response.json()) as AdminUser[]
+
+  if (!Array.isArray(payload)) {
+    throw new Error("Unexpected response from admin users endpoint")
+  }
+
+  return payload
+}
+
+export async function fetchPendingUsers(): Promise<AdminUser[]> {
+  const response = await fetch(`${API_BASE_URL}/api/auth/admin/pending`, {
+    cache: "no-store",
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    throw new Error("Unable to fetch pending users")
+  }
+
+  const payload = (await response.json()) as AdminUser[]
+
+  if (!Array.isArray(payload)) {
+    throw new Error("Unexpected response from pending users endpoint")
+  }
+
+  return payload
 }
 
 export type AdminCategory = Category
@@ -598,4 +646,3 @@ export async function fetchItemReceipts(): Promise<ItemReceiptRecord[]> {
 
   return payload.data
 }
-
