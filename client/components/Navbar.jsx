@@ -56,7 +56,7 @@ export default function Navbar() {
                 <Link href="/auth/login" className={`hidden md:block transition px-4 py-2 border rounded-md ${isDark ? 'hover:bg-slate-100 border-purple-600 text-white' : 'hover:bg-slate-100 border-[#E2DFD9] text-[#1A1916]'}`}>
                     Sign in
                 </Link>
-                <Link href="/auth/register" className={`hidden md:block px-4 py-2 transition text-white rounded-md ${isDark ? 'bg-purple-600 hover:bg-purple-700' : 'bg-[#1A1916] hover:bg-[#5A5650]'}`}>
+                <Link href="/auth/register" className={`hidden md:block px-4 py-2 transition text-white rounded-md ${isDark ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-600 hover:bg-purple-700'}`}>
                     Get started
                 </Link>
                 <button onClick={() => setOpenMobileMenu(!openMobileMenu)} aria-label="Toggle navigation menu" className="md:hidden">
