@@ -18,6 +18,13 @@ const { verifyToken, isAdminOrManager, isAuthenticated, isAdmin } = require("./m
 const PORT = Number.parseInt(process.env.PORT || "5000", 10);
 const CLIENT_URL =
   process.env.NEXT_PUBLIC_CLIENT_URL || "http://localhost:3000";
+const ALLOWED_ORIGINS = [
+  CLIENT_URL,
+  ...(process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+];
 const app = express();
 
 function isAllowedClientOrigin(origin) {
@@ -25,11 +32,15 @@ function isAllowedClientOrigin(origin) {
     return true;
   }
 
-  if (origin === CLIENT_URL) {
+  if (ALLOWED_ORIGINS.includes(origin)) {
     return true;
   }
 
-  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+    return true;
+  }
+
+  return /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin);
 }
 
 app.use(express.json({ limit: "15mb" }));
