@@ -33,7 +33,7 @@ export default function LogViewerPage() {
 
   const actions = useMemo(() => Array.from(new Set(logs.map((log) => log.action).filter(Boolean))), [logs])
   const tables = useMemo(
-    () => Array.from(new Set(logs.map((log) => log.table_name).filter(Boolean))),
+    () => Array.from(new Set(logs.map((log) => log.table_name).filter((name): name is string => Boolean(name)))),
     [logs],
   )
 

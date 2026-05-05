@@ -102,11 +102,15 @@ function AlertDialogContent({ className, children }: { className?: string; child
   )
 }
 
-function AlertDialogTrigger({ children }: { children: React.ReactElement }) {
+function AlertDialogTrigger({
+  children,
+}: {
+  children: React.ReactElement<{ onClick?: React.MouseEventHandler<HTMLElement> }>
+}) {
   const { open, onOpenChange } = useAlertDialogContext()
 
   return React.cloneElement(children, {
-    onClick: (event: React.MouseEvent) => {
+    onClick: (event: React.MouseEvent<HTMLElement>) => {
       children.props.onClick?.(event)
       onOpenChange(!open)
     },

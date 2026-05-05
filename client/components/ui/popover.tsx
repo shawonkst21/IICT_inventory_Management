@@ -60,13 +60,17 @@ function PopoverTrigger({
   children,
 }: {
   asChild?: boolean
-  children: React.ReactElement
+  children: React.ReactElement<{
+    onClick?: React.MouseEventHandler<HTMLElement>
+    "aria-expanded"?: boolean
+    "aria-haspopup"?: string
+  }>
 }) {
   const { open, setOpen } = usePopoverContext()
 
   if (asChild) {
     return React.cloneElement(children, {
-      onClick: (event: React.MouseEvent) => {
+      onClick: (event: React.MouseEvent<HTMLElement>) => {
         children.props.onClick?.(event)
         setOpen(!open)
       },

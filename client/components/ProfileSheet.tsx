@@ -431,13 +431,7 @@ export default function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) 
 
       {/* Success Dialog */}
       <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <AlertDialogContent
-          style={{
-            borderRadius: "16px",
-            border: "1px solid #E4E4E7",
-            padding: "24px",
-          }}
-        >
+        <AlertDialogContent className="rounded-2xl border border-zinc-200 p-6">
           <div className="flex flex-col items-center text-center gap-3">
             <div
               className="w-12 h-12 rounded-2xl flex items-center justify-center"

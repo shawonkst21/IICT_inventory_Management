@@ -39,14 +39,16 @@ export default function UsersManagementPage() {
 
   const getAuthToken = () => token || localStorage.getItem('token') || '';
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = (): Record<string, string> => {
     const authToken = getAuthToken();
 
-    return authToken
-      ? {
-          Authorization: `Bearer ${authToken}`,
-        }
-      : {};
+    if (!authToken) {
+      return {};
+    }
+
+    return {
+      Authorization: `Bearer ${authToken}`,
+    };
   };
 
   const loadUsers = async () => {
@@ -177,7 +179,7 @@ export default function UsersManagementPage() {
     setSelectedUser(user);
     setActionType(type);
     if (type === 'role') {
-      setNewRole(user.role);
+      setNewRole(user.role ?? 'user');
     }
     setDialogOpen(true);
   };
@@ -280,7 +282,6 @@ export default function UsersManagementPage() {
                     {activeTab === 'pending' && user.status === 'pending' ? (
                       <div className="flex gap-2">
                         <Button
-                          size="sm"
                           variant="outline"
                           onClick={() => openDialog(user, 'approve')}
                           className="text-green-600 hover:bg-green-50"
@@ -288,7 +289,6 @@ export default function UsersManagementPage() {
                           <Check size={16} />
                         </Button>
                         <Button
-                          size="sm"
                           variant="outline"
                           onClick={() => openDialog(user, 'reject')}
                           className="text-red-600 hover:bg-red-50"
@@ -298,7 +298,6 @@ export default function UsersManagementPage() {
                       </div>
                     ) : (
                       <Button
-                        size="sm"
                         variant="outline"
                         onClick={() => openDialog(user, 'role')}
                       >
