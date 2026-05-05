@@ -55,9 +55,6 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", verifyToken, isAdmin, adminRoutes);
 app.use("/api/tenders", tenderRoutes);
-// Mount item routes without global admin middleware so public endpoints
-// (like /options) are accessible to staff. Admin-only routes are protected
-// inside the router under the /admin path.
 app.use("/api/items", itemRoutes);
 app.use("/api/item-requests", verifyToken, itemRequestRoutes);
 app.use("/api/item-receipts", verifyToken, isAdminOrManager, itemReceiptRoutes);
